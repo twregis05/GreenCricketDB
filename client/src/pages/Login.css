@@ -1,0 +1,153 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #0d2818 0%, #1b4332 50%, #2d6a4f 100%);
+  z-index: 0;
+}
+
+.login-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 70% 30%, rgba(116,198,157,.12) 0%, transparent 60%),
+    radial-gradient(circle at 20% 80%, rgba(45,106,79,.25) 0%, transparent 50%);
+}
+
+.login-card {
+  position: relative;
+  z-index: 10;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 3rem 2.5rem;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  transition: transform .1s;
+}
+
+.login-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--green-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}
+
+.login-logo-icon { font-size: 2rem; }
+
+.login-title {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--green-dark);
+  margin-bottom: .35rem;
+}
+
+.login-subtitle {
+  font-size: .88rem;
+  color: var(--gray-600);
+  margin-bottom: 2rem;
+}
+
+/* PIN dots */
+.pin-dots {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.pin-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--gray-400);
+  background: transparent;
+  transition: background .15s, border-color .15s;
+}
+
+.pin-dot.filled {
+  background: var(--green-primary);
+  border-color: var(--green-primary);
+}
+
+.login-error {
+  color: var(--danger);
+  font-size: .85rem;
+  margin-bottom: .75rem;
+  font-weight: 500;
+}
+
+/* Numpad */
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .65rem;
+  margin-top: 1.5rem;
+}
+
+.numpad-key {
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: var(--gray-100);
+  color: var(--gray-800);
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: background .15s, transform .1s;
+  border: 1px solid var(--gray-200);
+}
+
+.numpad-key:hover:not(:disabled) {
+  background: var(--green-pale);
+  color: var(--green-dark);
+}
+
+.numpad-key:active:not(:disabled) {
+  transform: scale(.94);
+}
+
+.numpad-key:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.numpad-back {
+  color: var(--gray-600);
+  font-size: 1rem;
+}
+
+.numpad-spacer {
+  /* empty placeholder */
+}
+
+.login-loading {
+  margin-top: 1rem;
+  font-size: .85rem;
+  color: var(--gray-600);
+}
+
+/* shake animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15%       { transform: translateX(-8px); }
+  30%       { transform: translateX(8px); }
+  45%       { transform: translateX(-6px); }
+  60%       { transform: translateX(6px); }
+  75%       { transform: translateX(-3px); }
+  90%       { transform: translateX(3px); }
+}
+
+.login-card.shake { animation: shake .55s ease; }

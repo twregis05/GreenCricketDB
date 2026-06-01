@@ -1,0 +1,207 @@
+@import './Dashboard.css';
+@import './Schedule.css';
+
+/* Client selector */
+.client-selector-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.client-selector {
+  flex: 1;
+  min-width: 220px;
+  max-width: 360px;
+  padding: .65rem .9rem;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: .93rem;
+  background: var(--white);
+  color: var(--gray-800);
+  cursor: pointer;
+  transition: border-color .15s;
+}
+
+.client-selector:focus { border-color: var(--green-mid); }
+
+/* Payment summary */
+.payment-summary {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.summary-client {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+}
+
+.client-avatar-sm {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--green-pale);
+  color: var(--green-dark);
+  font-weight: 700;
+  font-size: .85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.summary-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--gray-800);
+}
+
+.summary-sub {
+  font-size: .82rem;
+  color: var(--gray-600);
+}
+
+.summary-stats {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  text-align: center;
+  min-width: 70px;
+}
+
+.stat-label {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: var(--gray-400);
+  margin-bottom: .2rem;
+}
+
+.stat-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--green-dark);
+}
+
+.stat-highlight .stat-value { color: var(--warning); }
+
+/* Invoice list */
+.invoice-list {
+  display: flex;
+  flex-direction: column;
+  gap: .9rem;
+}
+
+.invoice-card {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  transition: box-shadow .15s;
+}
+
+.invoice-card:hover { box-shadow: var(--shadow-sm); }
+
+.invoice-card.paid { border-left: 4px solid var(--green-mid); }
+.invoice-card.unpaid { border-left: 4px solid var(--warning); }
+
+.inv-top {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: .75rem;
+}
+
+.inv-num {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--green-dark);
+}
+
+.inv-status {
+  padding: .2rem .65rem;
+  border-radius: 50px;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.status-paid { background: var(--green-pale); color: var(--green-primary); }
+.status-due  { background: var(--warning-light); color: var(--warning); }
+
+.inv-amounts {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: .65rem;
+}
+
+.inv-amt {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+
+.inv-lbl {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: var(--gray-400);
+}
+
+.inv-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+.paid-val { color: var(--green-primary); }
+
+.inv-dates {
+  display: flex;
+  gap: 1.5rem;
+  font-size: .8rem;
+  color: var(--gray-600);
+  margin-bottom: .65rem;
+  flex-wrap: wrap;
+}
+
+.inv-payment-detail { margin-bottom: .65rem; }
+
+.payment-pill {
+  display: inline-block;
+  padding: .25rem .7rem;
+  border-radius: 6px;
+  font-size: .78rem;
+  font-weight: 500;
+}
+
+.pill-zelle  { background: #e8f4fd; color: #1565c0; }
+.pill-check  { background: #fef5e7; color: #b7770d; }
+.pill-credit { background: #f3e5f5; color: #7b1fa2; }
+
+.inv-actions {
+  display: flex;
+  gap: .5rem;
+}
+
+.cal-btn { background: none; border: none; cursor: pointer; font-size: .82rem; padding: .2rem .5rem; border-radius: 5px; transition: background .15s; }
+.cal-btn:hover { background: var(--gray-100); }
+.cal-btn.danger:hover { background: var(--danger-light); }
+
+/* Modal wide */
+.modal-wide { max-width: 640px; }
