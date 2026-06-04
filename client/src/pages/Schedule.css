@@ -104,6 +104,13 @@
   color: var(--gray-600);
 }
 
+.cal-entry-property {
+  font-size: .72rem;
+  color: var(--green-primary);
+  margin-bottom: .2rem;
+  line-height: 1.35;
+}
+
 .cal-entry-notes {
   font-size: .72rem;
   color: var(--gray-600);

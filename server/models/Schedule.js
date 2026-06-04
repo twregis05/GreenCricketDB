@@ -14,6 +14,7 @@ const scheduleSchema = new mongoose.Schema(
       required: true,
     },
     route: { type: Number, enum: [1, 2], required: true },
+    propertyId: { type: mongoose.Schema.Types.ObjectId, default: null },
     notes: { type: String },
   },
   { timestamps: true }

@@ -3,6 +3,9 @@ const multer = require('multer');
 const csv = require('csv-parser');
 const { Readable } = require('stream');
 const Client = require('../models/Client');
+const Invoice = require('../models/Invoice');
+const Schedule = require('../models/Schedule');
+const LawnCut = require('../models/LawnCut');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
@@ -54,12 +57,19 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// DELETE client
+// DELETE client (cascades to invoices, schedule entries, and lawn cuts)
 router.delete('/:id', auth, async (req, res) => {
   try {
     const client = await Client.findByIdAndDelete(req.params.id);
     if (!client) return res.status(404).json({ message: 'Client not found' });
-    res.json({ message: 'Client deleted' });
+
+    await Promise.all([
+      Invoice.deleteMany({ clientId: req.params.id }),
+      Schedule.deleteMany({ clientId: req.params.id }),
+      LawnCut.deleteMany({ clientId: req.params.id }),
+    ]);
+
+    res.json({ message: 'Client and all associated data deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

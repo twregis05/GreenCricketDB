@@ -117,8 +117,9 @@
 
 .invoice-card:hover { box-shadow: var(--shadow-sm); }
 
-.invoice-card.paid { border-left: 4px solid var(--green-mid); }
-.invoice-card.unpaid { border-left: 4px solid var(--warning); }
+.invoice-card.status-paid     { border-left: 4px solid var(--green-mid); }
+.invoice-card.status-pending  { border-left: 4px solid var(--warning); }
+.invoice-card.status-overpaid { border-left: 4px solid #7b1fa2; background: #fdf6ff; }
 
 .inv-top {
   display: flex;
@@ -133,15 +134,29 @@
   color: var(--green-dark);
 }
 
-.inv-status {
+.inv-status-badge {
   padding: .2rem .65rem;
   border-radius: 50px;
   font-size: .75rem;
   font-weight: 700;
 }
 
-.status-paid { background: var(--green-pale); color: var(--green-primary); }
-.status-due  { background: var(--warning-light); color: var(--warning); }
+.badge-paid     { background: var(--green-pale);   color: var(--green-primary); }
+.badge-pending  { background: var(--warning-light); color: var(--warning); }
+.badge-overpaid { background: #f3e5f5; color: #7b1fa2; }
+
+.overpaid-notice {
+  background: #f3e5f5;
+  border: 1px solid #ce93d8;
+  border-radius: 6px;
+  padding: .5rem .75rem;
+  font-size: .82rem;
+  font-weight: 500;
+  color: #6a1b9a;
+  margin-bottom: .65rem;
+}
+
+.stat-credit .stat-value { color: #7b1fa2; }
 
 .inv-amounts {
   display: flex;
@@ -169,7 +184,8 @@
   color: var(--gray-800);
 }
 
-.paid-val { color: var(--green-primary); }
+.paid-val   { color: var(--green-primary); }
+.credit-val { color: #7b1fa2; font-weight: 800; }
 
 .inv-dates {
   display: flex;
@@ -205,3 +221,64 @@
 
 /* Modal wide */
 .modal-wide { max-width: 640px; }
+
+/* Apply Credit */
+.btn-apply-credit {
+  align-self: center;
+  padding: .45rem 1rem;
+  background: #7b1fa2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.btn-apply-credit:hover { background: #6a1b9a; }
+
+.credit-available-banner {
+  background: #f3e5f5;
+  border: 1px solid #ce93d8;
+  border-radius: 8px;
+  padding: .65rem 1rem;
+  font-size: .9rem;
+  color: #6a1b9a;
+  margin-bottom: 1.25rem;
+}
+
+.credit-amount-row {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+
+.credit-amount-row input { flex: 1; }
+
+.btn-max {
+  padding: .55rem .9rem;
+  background: var(--gray-100);
+  border: 1.5px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.btn-max:hover { background: var(--gray-200); }
+
+.field-hint {
+  font-size: .78rem;
+  color: var(--gray-400);
+  margin-top: .25rem;
+}
+
+.field-hint-inline {
+  font-size: .78rem;
+  color: var(--gray-400);
+  font-weight: 400;
+  margin-left: .25rem;
+}

@@ -174,11 +174,35 @@
 
 .client-info { flex: 1; min-width: 0; }
 
+.client-name-row {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin-bottom: .3rem;
+  flex-wrap: wrap;
+}
+
 .client-name {
   font-size: 1rem;
   font-weight: 700;
   color: var(--gray-800);
-  margin-bottom: .3rem;
+}
+
+.card-type-badge {
+  font-size: .65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  background: #e8eaf6;
+  color: #3949ab;
+  padding: .1rem .45rem;
+  border-radius: 50px;
+  flex-shrink: 0;
+}
+
+.avatar-group {
+  background: #e8eaf6;
+  color: #3949ab;
 }
 
 .client-detail {

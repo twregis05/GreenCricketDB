@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', auth, async (req, res) => {
   try {
     const schedules = await Schedule.find()
-      .populate('clientId', 'firstName lastName')
+      .populate('clientId', 'firstName lastName groupName clientType properties')
       .sort({ route: 1, dayOfWeek: 1 });
     res.json(schedules);
   } catch (err) {
@@ -20,8 +20,19 @@ router.get('/', auth, async (req, res) => {
 router.get('/route/:routeNum', auth, async (req, res) => {
   try {
     const schedules = await Schedule.find({ route: Number(req.params.routeNum) })
-      .populate('clientId', 'firstName lastName')
+      .populate('clientId', 'firstName lastName groupName clientType properties')
       .sort({ dayOfWeek: 1 });
+    res.json(schedules);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET all schedules for a specific client
+router.get('/client/:clientId', auth, async (req, res) => {
+  try {
+    const schedules = await Schedule.find({ clientId: req.params.clientId })
+      .sort({ route: 1, dayOfWeek: 1 });
     res.json(schedules);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -31,7 +42,7 @@ router.get('/route/:routeNum', auth, async (req, res) => {
 // GET single schedule
 router.get('/:id', auth, async (req, res) => {
   try {
-    const schedule = await Schedule.findById(req.params.id).populate('clientId', 'firstName lastName');
+    const schedule = await Schedule.findById(req.params.id).populate('clientId', 'firstName lastName groupName clientType properties');
     if (!schedule) return res.status(404).json({ message: 'Schedule not found' });
     res.json(schedule);
   } catch (err) {
@@ -44,7 +55,7 @@ router.post('/', auth, async (req, res) => {
   try {
     const schedule = new Schedule(req.body);
     const saved = await schedule.save();
-    await saved.populate('clientId', 'firstName lastName');
+    await saved.populate('clientId', 'firstName lastName groupName clientType properties');
     res.status(201).json(saved);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -57,7 +68,7 @@ router.put('/:id', auth, async (req, res) => {
     const schedule = await Schedule.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
-    }).populate('clientId', 'firstName lastName');
+    }).populate('clientId', 'firstName lastName groupName clientType properties');
     if (!schedule) return res.status(404).json({ message: 'Schedule not found' });
     res.json(schedule);
   } catch (err) {

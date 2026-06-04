@@ -1,0 +1,149 @@
+.cs-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+  max-width: 420px;
+}
+
+.cs-input-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .55rem .85rem;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 8px;
+  background: var(--white);
+  cursor: text;
+  transition: border-color .15s, box-shadow .15s;
+  position: relative;
+}
+
+.cs-input-row:hover { border-color: var(--gray-400); }
+
+.cs-input-row.cs-open {
+  border-color: var(--green-mid);
+  box-shadow: 0 0 0 3px rgba(64,145,108,.12);
+}
+
+.cs-icon {
+  font-size: .85rem;
+  flex-shrink: 0;
+  opacity: .55;
+}
+
+.cs-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: .93rem;
+  color: var(--gray-800);
+  outline: none;
+  font-family: inherit;
+  min-width: 0;
+}
+
+/* When closed and a client is selected, the real text shows via the
+   absolute overlay; the real input is invisible but still focusable */
+.cs-selected-name {
+  position: absolute;
+  left: 2.2rem;
+  right: 2rem;
+  font-size: .93rem;
+  color: var(--gray-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.cs-clear {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--gray-400);
+  font-size: .8rem;
+  padding: .15rem .3rem;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color .15s, background .15s;
+}
+
+.cs-clear:hover { color: var(--danger); background: var(--danger-light); }
+
+.cs-chevron {
+  font-size: .7rem;
+  color: var(--gray-400);
+  flex-shrink: 0;
+}
+
+/* Dropdown */
+.cs-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  z-index: 200;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.cs-empty {
+  padding: .85rem 1rem;
+  font-size: .88rem;
+  color: var(--gray-400);
+  text-align: center;
+}
+
+.cs-option {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .6rem .9rem;
+  cursor: pointer;
+  transition: background .1s;
+}
+
+.cs-option:hover { background: var(--gray-50); }
+
+.cs-option-selected { background: var(--green-pale); }
+.cs-option-selected:hover { background: #c8edd4; }
+
+.cs-option-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--green-pale);
+  color: var(--green-dark);
+  font-size: .7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cs-option-name {
+  flex: 1;
+  font-size: .9rem;
+  color: var(--gray-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cs-group-tag {
+  font-size: .65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  background: #e8eaf6;
+  color: #3949ab;
+  padding: .1rem .4rem;
+  border-radius: 50px;
+  flex-shrink: 0;
+}

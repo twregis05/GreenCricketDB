@@ -23,6 +23,9 @@ export default function Navbar() {
         <NavLink to="/schedule" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           Schedule
         </NavLink>
+        <NavLink to="/lawncuts" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          Lawn Cuts
+        </NavLink>
         <NavLink to="/payments" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           Payments
         </NavLink>

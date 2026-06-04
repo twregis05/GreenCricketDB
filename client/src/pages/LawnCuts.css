@@ -1,0 +1,179 @@
+@import './Dashboard.css';
+@import './Schedule.css';
+
+/* ── Summary bar ─────────────────────────────────────── */
+.lc-summary {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.lc-summary-left {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+}
+
+.lc-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--green-pale);
+  color: var(--green-dark);
+  font-weight: 700;
+  font-size: .85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lc-client-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--gray-800);
+}
+
+.lc-meta {
+  font-size: .82rem;
+  color: var(--gray-600);
+  margin-top: .15rem;
+}
+
+/* ── Property filter ─────────────────────────────────── */
+.lc-filter {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  align-items: flex-end;
+}
+
+.lc-filter-label {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: var(--gray-400);
+}
+
+.lc-filter-pills {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pill {
+  padding: .3rem .85rem;
+  border-radius: 50px;
+  border: 1.5px solid var(--gray-200);
+  background: var(--white);
+  color: var(--gray-600);
+  font-size: .8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.pill:hover { border-color: var(--green-light); color: var(--green-dark); }
+
+.pill-active {
+  background: var(--green-primary);
+  border-color: var(--green-primary);
+  color: var(--white);
+}
+
+.pill-active:hover {
+  background: var(--green-dark);
+  border-color: var(--green-dark);
+  color: var(--white);
+}
+
+/* ── Cut list ────────────────────────────────────────── */
+.lc-list {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.lc-card {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-left: 4px solid var(--green-mid);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  transition: box-shadow .15s;
+}
+
+.lc-card:hover { box-shadow: var(--shadow-sm); }
+
+.lc-card-date-col {
+  min-width: 148px;
+  flex-shrink: 0;
+}
+
+.lc-date {
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--green-dark);
+}
+
+.lc-time {
+  font-size: .8rem;
+  color: var(--gray-600);
+  margin-top: .15rem;
+}
+
+.lc-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.lc-property {
+  font-size: .88rem;
+  color: var(--green-primary);
+  margin-bottom: .35rem;
+}
+
+.lc-property-none {
+  color: var(--gray-400);
+  font-style: italic;
+}
+
+.lc-notes {
+  font-size: .85rem;
+  color: var(--gray-600);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.lc-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  flex-shrink: 0;
+}
+
+/* ── Modal reuse (same as Schedule/Payments) ─────────── */
+.optional-label {
+  font-size: .75rem;
+  font-weight: 400;
+  color: var(--gray-400);
+}
+
+.field-hint {
+  font-size: .78rem;
+  color: var(--gray-400);
+  font-style: italic;
+  margin-top: .2rem;
+}

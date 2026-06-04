@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import ClientSearch from '../components/ClientSearch';
 import api from '../utils/api';
+import { clientName, clientInitials } from '../utils/client';
 import './Payments.css';
 
 const BLANK_INVOICE = {
@@ -34,6 +36,12 @@ export default function Payments() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [showCreditForm, setShowCreditForm] = useState(false);
+  const [creditTargetId, setCreditTargetId] = useState('');
+  const [creditAmount, setCreditAmount] = useState('');
+  const [creditError, setCreditError] = useState('');
+  const [applyingCredit, setApplyingCredit] = useState(false);
 
   useEffect(() => {
     api.get('/clients').then(({ data }) => setClients(data));
@@ -90,7 +98,7 @@ export default function Payments() {
     if (form.amountDue === '') { setError('Amount due is required.'); return; }
     setSaving(true);
     setError('');
-    const payload = { ...form, amountDue: Number(form.amountDue), amountPaid: Number(form.amountPaid || 0) };
+    const payload = { ...form, amountDue: Number(form.amountDue), amountPaid: Number(form.amountPaid || 0), paymentType: form.paymentType || null };
     try {
       if (editId) {
         const { data } = await api.put(`/invoices/${editId}`, payload);
@@ -113,12 +121,80 @@ export default function Payments() {
     setInvoices((prev) => prev.filter((i) => i._id !== id));
   };
 
+  const openCreditForm = () => {
+    setCreditTargetId('');
+    setCreditAmount('');
+    setCreditError('');
+    setShowCreditForm(true);
+  };
+
+  const applyCredit = async () => {
+    const target = invoices.find((i) => i._id === creditTargetId);
+    if (!target) { setCreditError('Select an invoice to apply credit to.'); return; }
+    const amount = Number(creditAmount);
+    if (!amount || amount <= 0) { setCreditError('Enter a valid credit amount.'); return; }
+    if (amount > totalCredit) { setCreditError(`Cannot exceed available credit of ${fmt(totalCredit)}.`); return; }
+    const targetBalance = (target.amountDue || 0) - (target.amountPaid || 0);
+    if (amount > targetBalance) { setCreditError(`Cannot exceed this invoice's remaining balance of ${fmt(targetBalance)}.`); return; }
+    setApplyingCredit(true);
+    setCreditError('');
+    try {
+      // Drain the credit amount from overpaid source invoices (largest excess first)
+      const sources = invoices
+        .filter((i) => (i.amountPaid || 0) > (i.amountDue || 0))
+        .sort((a, b) => (b.amountPaid - b.amountDue) - (a.amountPaid - a.amountDue));
+
+      let toDrain = amount;
+      const sourcePuts = [];
+      for (const src of sources) {
+        if (toDrain <= 0) break;
+        const excess = (src.amountPaid || 0) - (src.amountDue || 0);
+        const drain = Math.min(excess, toDrain);
+        sourcePuts.push(
+          api.put(`/invoices/${src._id}`, { ...src, amountPaid: (src.amountPaid || 0) - drain, paymentType: src.paymentType || null })
+            .then((r) => r.data)
+        );
+        toDrain -= drain;
+      }
+
+      // Apply credit to the target invoice
+      const targetPut = api.put(`/invoices/${target._id}`, {
+        ...target,
+        amountPaid: (target.amountPaid || 0) + amount,
+        paymentType: target.paymentType || null,
+      }).then((r) => r.data);
+
+      const results = await Promise.all([...sourcePuts, targetPut]);
+
+      setInvoices((prev) =>
+        prev.map((i) => results.find((r) => r._id === i._id) || i)
+      );
+      setShowCreditForm(false);
+    } catch (err) {
+      setCreditError(err.response?.data?.message || 'Failed to apply credit.');
+    } finally {
+      setApplyingCredit(false);
+    }
+  };
+
   const selectedClient = clients.find((c) => c._id === selectedClientId);
   const totalDue = invoices.reduce((s, i) => s + (i.amountDue || 0), 0);
   const totalPaid = invoices.reduce((s, i) => s + (i.amountPaid || 0), 0);
+  const totalCredit = invoices.reduce((s, i) => {
+    const over = (i.amountPaid || 0) - (i.amountDue || 0);
+    return s + (over > 0 ? over : 0);
+  }, 0);
 
   const fmt = (v) => `$${Number(v || 0).toFixed(2)}`;
   const fmtDate = (v) => (v ? new Date(v).toLocaleDateString() : '—');
+
+  const invStatus = (inv) => {
+    const due = inv.amountDue || 0;
+    const paid = inv.amountPaid || 0;
+    if (paid > due) return 'overpaid';
+    if (paid >= due) return 'paid';
+    return 'pending';
+  };
 
   return (
     <div className="page">
@@ -134,22 +210,14 @@ export default function Payments() {
 
         {/* Client selector */}
         <div className="client-selector-row">
-          <select
-            className="client-selector"
+          <ClientSearch
+            clients={clients}
             value={selectedClientId}
-            onChange={(e) => {
-              setSelectedClientId(e.target.value);
-              navigate(e.target.value ? `/payments/${e.target.value}` : '/payments');
+            onChange={(id) => {
+              setSelectedClientId(id);
+              navigate(id ? `/payments/${id}` : '/payments');
             }}
-          >
-            <option value="">— Select a client —</option>
-            {clients.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.firstName} {c.lastName}
-              </option>
-            ))}
-          </select>
-
+          />
           {selectedClientId && (
             <button className="btn-action btn-add" onClick={openNew}>
               + New Invoice
@@ -162,10 +230,10 @@ export default function Payments() {
           <div className="payment-summary">
             <div className="summary-client">
               <div className="client-avatar-sm">
-                {selectedClient.firstName[0]}{selectedClient.lastName[0]}
+                {clientInitials(selectedClient)}
               </div>
               <div>
-                <div className="summary-name">{selectedClient.firstName} {selectedClient.lastName}</div>
+                <div className="summary-name">{clientName(selectedClient)}</div>
                 {selectedClient.phone && <div className="summary-sub">{selectedClient.phone}</div>}
               </div>
             </div>
@@ -173,7 +241,13 @@ export default function Payments() {
               <Stat label="Invoices" value={invoices.length} />
               <Stat label="Total Due" value={fmt(totalDue)} />
               <Stat label="Total Paid" value={fmt(totalPaid)} />
-              <Stat label="Balance" value={fmt(totalDue - totalPaid)} highlight={totalDue > totalPaid} />
+              <Stat label="Balance Owed" value={fmt(Math.max(0, totalDue - totalPaid))} highlight={totalDue > totalPaid} />
+              {totalCredit > 0 && <Stat label="Client Credit" value={fmt(totalCredit)} credit />}
+              {totalCredit > 0 && (
+                <button className="btn-apply-credit" onClick={openCreditForm}>
+                  Apply Credit
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -187,12 +261,15 @@ export default function Payments() {
           <div className="state-msg empty">No invoices yet for this client.</div>
         ) : (
           <div className="invoice-list">
-            {invoices.map((inv) => (
-              <div key={inv._id} className={`invoice-card ${inv.amountPaid >= inv.amountDue ? 'paid' : 'unpaid'}`}>
+            {invoices.map((inv) => {
+              const status = invStatus(inv);
+              const credit = (inv.amountPaid || 0) - (inv.amountDue || 0);
+              return (
+              <div key={inv._id} className={`invoice-card status-${status}`}>
                 <div className="inv-top">
                   <div className="inv-num">#{inv.invoiceNumber}</div>
-                  <span className={`inv-status ${inv.amountPaid >= inv.amountDue ? 'status-paid' : 'status-due'}`}>
-                    {inv.amountPaid >= inv.amountDue ? 'Paid' : 'Outstanding'}
+                  <span className={`inv-status-badge badge-${status}`}>
+                    {status === 'paid' ? 'Paid' : status === 'overpaid' ? 'Overpaid' : 'Pending'}
                   </span>
                 </div>
 
@@ -205,7 +282,19 @@ export default function Payments() {
                     <span className="inv-lbl">Paid</span>
                     <span className="inv-val paid-val">{fmt(inv.amountPaid)}</span>
                   </div>
+                  {status === 'overpaid' && (
+                    <div className="inv-amt">
+                      <span className="inv-lbl">Client Credit</span>
+                      <span className="inv-val credit-val">{fmt(credit)}</span>
+                    </div>
+                  )}
                 </div>
+
+                {status === 'overpaid' && (
+                  <div className="overpaid-notice">
+                    ⚠ Client overpaid by {fmt(credit)} — apply as credit to next invoice or issue a refund.
+                  </div>
+                )}
 
                 <div className="inv-dates">
                   <span>Sent: {fmtDate(inv.dateSent)}</span>
@@ -223,7 +312,8 @@ export default function Payments() {
                   <button className="cal-btn danger" onClick={() => remove(inv._id)}>🗑 Delete</button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -243,13 +333,13 @@ export default function Payments() {
                   <select value={form.clientId} onChange={set('clientId')}>
                     <option value="">— Select —</option>
                     {clients.map((c) => (
-                      <option key={c._id} value={c._id}>{c.firstName} {c.lastName}</option>
+                      <option key={c._id} value={c._id}>{clientName(c)}</option>
                     ))}
                   </select>
                 </div>
                 <div className="form-group">
                   <label>Invoice Number *</label>
-                  <input value={form.invoiceNumber} onChange={set('invoiceNumber')} placeholder="INV-001" />
+                  <input value={form.invoiceNumber} onChange={set('invoiceNumber')} placeholder="0001" />
                 </div>
                 <div className="form-group">
                   <label>Amount Due *</label>
@@ -335,13 +425,96 @@ export default function Payments() {
           </div>
         </div>
       )}
+
+      {/* Apply Credit modal */}
+      {showCreditForm && (() => {
+        const pendingInvoices = invoices.filter((i) => (i.amountPaid || 0) < (i.amountDue || 0));
+        const target = invoices.find((i) => i._id === creditTargetId);
+        const maxApplicable = target
+          ? Math.min(totalCredit, (target.amountDue || 0) - (target.amountPaid || 0))
+          : totalCredit;
+        return (
+          <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowCreditForm(false); }}>
+            <div className="modal-card">
+              <div className="modal-header">
+                <h2 className="modal-title">Apply Client Credit</h2>
+                <button className="btn-icon btn-close" onClick={() => setShowCreditForm(false)}>✕</button>
+              </div>
+              <div className="modal-body">
+                <div className="credit-available-banner">
+                  Available credit: <strong>{fmt(totalCredit)}</strong>
+                </div>
+
+                <div className="form-grid">
+                  <div className="form-group form-span">
+                    <label>Apply to Invoice</label>
+                    <select value={creditTargetId} onChange={(e) => { setCreditTargetId(e.target.value); setCreditAmount(''); }}>
+                      <option value="">— Select a pending invoice —</option>
+                      {pendingInvoices.map((i) => {
+                        const bal = (i.amountDue || 0) - (i.amountPaid || 0);
+                        return (
+                          <option key={i._id} value={i._id}>
+                            #{i.invoiceNumber} — balance {fmt(bal)}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {pendingInvoices.length === 0 && (
+                      <p className="field-hint">No pending invoices to apply credit to.</p>
+                    )}
+                  </div>
+
+                  <div className="form-group form-span">
+                    <label>
+                      Credit Amount
+                      {target && <span className="field-hint-inline"> (max {fmt(maxApplicable)})</span>}
+                    </label>
+                    <div className="credit-amount-row">
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        max={maxApplicable}
+                        value={creditAmount}
+                        onChange={(e) => setCreditAmount(e.target.value)}
+                        placeholder="0.00"
+                        disabled={!creditTargetId}
+                      />
+                      {creditTargetId && (
+                        <button
+                          className="btn-max"
+                          onClick={() => setCreditAmount(maxApplicable.toFixed(2))}
+                        >
+                          Max
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {creditError && <p className="form-error">{creditError}</p>}
+                <div className="modal-footer-actions">
+                  <button
+                    className="btn btn-primary"
+                    onClick={applyCredit}
+                    disabled={applyingCredit || !creditTargetId || !creditAmount}
+                  >
+                    {applyingCredit ? 'Applying…' : 'Apply Credit'}
+                  </button>
+                  <button className="btn btn-ghost" onClick={() => setShowCreditForm(false)}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
 
-function Stat({ label, value, highlight }) {
+function Stat({ label, value, highlight, credit }) {
   return (
-    <div className={`stat-item ${highlight ? 'stat-highlight' : ''}`}>
+    <div className={`stat-item ${highlight ? 'stat-highlight' : ''} ${credit ? 'stat-credit' : ''}`}>
       <div className="stat-label">{label}</div>
       <div className="stat-value">{value}</div>
     </div>

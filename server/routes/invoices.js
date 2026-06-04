@@ -1,8 +1,16 @@
 const express = require('express');
 const Invoice = require('../models/Invoice');
+const Client = require('../models/Client');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
+
+// After any invoice write, recalculate whether the client has outstanding invoices
+async function syncClientPending(clientId) {
+  const invoices = await Invoice.find({ clientId });
+  const hasPending = invoices.some((inv) => (inv.amountPaid || 0) < (inv.amountDue || 0));
+  await Client.findByIdAndUpdate(clientId, { invoicePending: hasPending });
+}
 
 // GET all invoices for a client
 router.get('/client/:clientId', auth, async (req, res) => {
@@ -42,6 +50,7 @@ router.post('/', auth, async (req, res) => {
   try {
     const invoice = new Invoice(req.body);
     const saved = await invoice.save();
+    await syncClientPending(saved.clientId);
     res.status(201).json(saved);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -56,6 +65,7 @@ router.put('/:id', auth, async (req, res) => {
       runValidators: true,
     });
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+    await syncClientPending(invoice.clientId);
     res.json(invoice);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -67,6 +77,7 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     const invoice = await Invoice.findByIdAndDelete(req.params.id);
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+    await syncClientPending(invoice.clientId);
     res.json({ message: 'Invoice deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
