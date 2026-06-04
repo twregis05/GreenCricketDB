@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 const app = express();
 
 app.use(cors({
-  origin : 'https://greencricket-db.onrender.com'
+  origin : 'https://greencricketdb.onrender.com'
 }));
 app.use(express.json());
 
