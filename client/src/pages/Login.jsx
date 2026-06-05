@@ -1,97 +1,76 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import './Login.css';
 
 export default function Login() {
-  const [pin, setPin] = useState('');
-  const [error, setError] = useState('');
-  const [shake, setShake] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
   const navigate = useNavigate();
 
-  const handleDigit = (d) => {
-    if (pin.length >= 4) return;
-    const next = pin + d;
-    setPin(next);
-    if (next.length === 4) submit(next);
-  };
-
-  const handleBackspace = () => {
-    setPin((p) => p.slice(0, -1));
-    setError('');
-  };
-
-  const submit = async (value) => {
+  const submit = async () => {
     setLoading(true);
     setError('');
     try {
-      const { data } = await api.post('/auth/login', { pin: value });
+      const { data } = await api.post('/auth/login', { email, password });
       localStorage.setItem('gc_token', data.token);
       navigate('/dashboard');
-    } catch {
-      setError('Incorrect PIN. Please try again.');
-      triggerShake();
-      setPin('');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const triggerShake = () => {
-    setShake(true);
-    setTimeout(() => setShake(false), 600);
-  };
-
-  const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
-
   return (
     <div className="login-page">
       <div className="login-bg" />
-      <div className={`login-card ${shake ? 'shake' : ''}`}>
+      <div className="login-card">
         <div className="login-logo">
           <span className="login-logo-icon">🌿</span>
         </div>
         <h1 className="login-title">Green Cricket</h1>
-        <p className="login-subtitle">Employee Portal — Enter your 4-digit PIN</p>
+        <p className="login-subtitle">Employee Portal — Sign in to continue</p>
 
-        <div className="pin-dots">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className={`pin-dot ${i < pin.length ? 'filled' : ''}`} />
-          ))}
+        <div className="login-form">
+          <div className="login-field">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              onKeyDown={(e) => e.key === 'Enter' && submit()}
+              autoFocus
+            />
+          </div>
+
+          <div className="login-field">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              onKeyDown={(e) => e.key === 'Enter' && submit()}
+            />
+          </div>
+
+          {error && <p className="login-error">{error}</p>}
+
+          <button className="login-submit" onClick={submit} disabled={loading}>
+            {loading ? 'Signing in…' : 'Sign In'}
+          </button>
         </div>
 
-        {error && <p className="login-error">{error}</p>}
-
-        <div className="numpad">
-          {digits.map((d, idx) => {
-            if (d === '') return <div key={idx} className="numpad-spacer" />;
-            if (d === '⌫') {
-              return (
-                <button
-                  key={idx}
-                  className="numpad-key numpad-back"
-                  onClick={handleBackspace}
-                  disabled={loading}
-                >
-                  {d}
-                </button>
-              );
-            }
-            return (
-              <button
-                key={idx}
-                className="numpad-key"
-                onClick={() => handleDigit(d)}
-                disabled={loading || pin.length >= 4}
-              >
-                {d}
-              </button>
-            );
-          })}
-        </div>
-
-        {loading && <p className="login-loading">Verifying…</p>}
+        <p className="login-footer-link">
+          Don't have an account?{' '}
+          <Link to="/register">Request access</Link>
+        </p>
       </div>
     </div>
   );

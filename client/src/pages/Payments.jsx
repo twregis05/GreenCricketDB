@@ -21,6 +21,7 @@ const BLANK_INVOICE = {
   checkMemo: '',
   processedDate: '',
   paymentMemo: '',
+  notes: '',
 };
 
 export default function Payments() {
@@ -86,6 +87,7 @@ export default function Payments() {
       checkMemo: inv.checkMemo || '',
       processedDate: toDateStr(inv.processedDate),
       paymentMemo: inv.paymentMemo || '',
+      notes: inv.notes || '',
     });
     setEditId(inv._id);
     setError('');
@@ -186,7 +188,7 @@ export default function Payments() {
   }, 0);
 
   const fmt = (v) => `$${Number(v || 0).toFixed(2)}`;
-  const fmtDate = (v) => (v ? new Date(v).toLocaleDateString() : '—');
+  const fmtDate = (v) => (v ? new Date(v).toLocaleDateString('en-US', { timeZone: 'UTC' }) : '—');
 
   const invStatus = (inv) => {
     const due = inv.amountDue || 0;
@@ -307,6 +309,10 @@ export default function Payments() {
                   </div>
                 )}
 
+                {inv.notes && (
+                  <div className="inv-notes">{inv.notes}</div>
+                )}
+
                 <div className="inv-actions">
                   <button className="cal-btn" onClick={() => openEdit(inv)}>✏️ Edit</button>
                   <button className="cal-btn danger" onClick={() => remove(inv._id)}>🗑 Delete</button>
@@ -412,6 +418,17 @@ export default function Payments() {
                     </div>
                   </>
                 )}
+
+                {/* General notes */}
+                <div className="form-group form-span">
+                  <label>Notes</label>
+                  <textarea
+                    value={form.notes}
+                    onChange={set('notes')}
+                    rows={2}
+                    placeholder="Any additional notes about this invoice…"
+                  />
+                </div>
               </div>
 
               {error && <p className="form-error">{error}</p>}

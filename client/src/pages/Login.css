@@ -28,126 +28,126 @@
   z-index: 10;
   background: var(--white);
   border-radius: var(--radius-lg);
-  padding: 3rem 2.5rem;
+  padding: 2.75rem 2.5rem;
   width: 100%;
-  max-width: 360px;
+  max-width: 380px;
   box-shadow: var(--shadow-lg);
   text-align: center;
-  transition: transform .1s;
 }
 
 .login-logo {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: var(--green-pale);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1.25rem;
+  margin: 0 auto 1.1rem;
 }
 
-.login-logo-icon { font-size: 2rem; }
+.login-logo-icon { font-size: 1.8rem; }
 
 .login-title {
-  font-size: 1.7rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: var(--green-dark);
-  margin-bottom: .35rem;
+  margin-bottom: .3rem;
 }
 
 .login-subtitle {
-  font-size: .88rem;
+  font-size: .85rem;
   color: var(--gray-600);
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
 }
 
-/* PIN dots */
-.pin-dots {
+/* Form */
+.login-form {
   display: flex;
+  flex-direction: column;
   gap: 1rem;
-  justify-content: center;
-  margin-bottom: 1rem;
+  text-align: left;
 }
 
-.pin-dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid var(--gray-400);
-  background: transparent;
-  transition: background .15s, border-color .15s;
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
 }
 
-.pin-dot.filled {
-  background: var(--green-primary);
-  border-color: var(--green-primary);
+.login-field label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--gray-600);
+}
+
+.login-field input {
+  padding: .65rem .9rem;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: .93rem;
+  font-family: inherit;
+  color: var(--gray-800);
+  background: var(--gray-50);
+  transition: border-color .15s;
+  outline: none;
+}
+
+.login-field input:focus {
+  border-color: var(--green-mid);
+  background: var(--white);
 }
 
 .login-error {
   color: var(--danger);
-  font-size: .85rem;
-  margin-bottom: .75rem;
+  font-size: .83rem;
   font-weight: 500;
+  background: var(--danger-light);
+  border-radius: 6px;
+  padding: .5rem .75rem;
+  text-align: left;
 }
 
-/* Numpad */
-.numpad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: .65rem;
-  margin-top: 1.5rem;
+.login-submit {
+  margin-top: .25rem;
+  padding: .75rem;
+  background: var(--green-primary);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: .97rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+  font-family: inherit;
 }
 
-.numpad-key {
-  padding: 1rem;
-  border-radius: var(--radius);
-  background: var(--gray-100);
-  color: var(--gray-800);
-  font-size: 1.25rem;
+.login-submit:hover:not(:disabled) { background: var(--green-dark); }
+.login-submit:disabled { opacity: .6; cursor: default; }
+
+.login-footer-link {
+  margin-top: 1.25rem;
+  font-size: .83rem;
+  color: var(--gray-600);
+}
+
+.login-footer-link a {
+  color: var(--green-primary);
   font-weight: 600;
-  transition: background .15s, transform .1s;
-  border: 1px solid var(--gray-200);
+  text-decoration: none;
 }
 
-.numpad-key:hover:not(:disabled) {
+.login-footer-link a:hover { text-decoration: underline; }
+
+/* Shared with Register */
+.login-success {
   background: var(--green-pale);
+  border: 1px solid var(--green-light);
+  border-radius: 8px;
+  padding: 1rem;
   color: var(--green-dark);
+  font-size: .88rem;
+  line-height: 1.5;
+  text-align: left;
+  margin-top: .5rem;
 }
-
-.numpad-key:active:not(:disabled) {
-  transform: scale(.94);
-}
-
-.numpad-key:disabled {
-  opacity: .5;
-  cursor: default;
-}
-
-.numpad-back {
-  color: var(--gray-600);
-  font-size: 1rem;
-}
-
-.numpad-spacer {
-  /* empty placeholder */
-}
-
-.login-loading {
-  margin-top: 1rem;
-  font-size: .85rem;
-  color: var(--gray-600);
-}
-
-/* shake animation */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  15%       { transform: translateX(-8px); }
-  30%       { transform: translateX(8px); }
-  45%       { transform: translateX(-6px); }
-  60%       { transform: translateX(6px); }
-  75%       { transform: translateX(-3px); }
-  90%       { transform: translateX(3px); }
-}
-
-.login-card.shake { animation: shake .55s ease; }

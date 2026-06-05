@@ -70,14 +70,12 @@ export default function ClientSearch({
         <input
           className="cs-input"
           type="text"
-          placeholder={open ? 'Type to search…' : (selected ? clientName(selected) : placeholder)}
-          value={open ? query : ''}
+          placeholder={open ? 'Type to search…' : placeholder}
+          value={open ? query : (selected ? clientName(selected) : '')}
+          readOnly={!open}
           onFocus={handleFocus}
           onChange={(e) => setQuery(e.target.value)}
         />
-        {selected && !open && (
-          <span className="cs-selected-name">{clientName(selected)}</span>
-        )}
         {selected ? (
           <button className="cs-clear" onClick={clear} title="Clear">✕</button>
         ) : (

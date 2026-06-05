@@ -42,19 +42,6 @@
   min-width: 0;
 }
 
-/* When closed and a client is selected, the real text shows via the
-   absolute overlay; the real input is invisible but still focusable */
-.cs-selected-name {
-  position: absolute;
-  left: 2.2rem;
-  right: 2rem;
-  font-size: .93rem;
-  color: var(--gray-800);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  pointer-events: none;
-}
 
 .cs-clear {
   flex-shrink: 0;

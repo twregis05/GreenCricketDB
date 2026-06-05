@@ -23,6 +23,8 @@ const invoiceSchema = new mongoose.Schema(
     // Credit / Online
     processedDate: { type: Date },
     paymentMemo: { type: String },
+    // General
+    notes: { type: String, default: '' },
   },
   { timestamps: true }
 );
