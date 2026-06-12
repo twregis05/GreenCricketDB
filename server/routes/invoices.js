@@ -22,11 +22,26 @@ router.get('/client/:clientId', auth, async (req, res) => {
   }
 });
 
+// GET next invoice number (max numeric value + 1, zero-padded to 4 digits)
+router.get('/next-number', auth, async (req, res) => {
+  try {
+    const invoices = await Invoice.find({}, 'invoiceNumber');
+    let max = 0;
+    for (const inv of invoices) {
+      const n = parseInt(inv.invoiceNumber, 10);
+      if (!isNaN(n) && n > max) max = n;
+    }
+    res.json({ next: String(max + 1).padStart(4, '0') });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // GET all invoices
 router.get('/', auth, async (req, res) => {
   try {
     const invoices = await Invoice.find()
-      .populate('clientId', 'firstName lastName')
+      .populate('clientId', 'firstName lastName groupName clientType properties')
       .sort({ dateSent: -1 });
     res.json(invoices);
   } catch (err) {

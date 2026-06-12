@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const invoiceSchema = new mongoose.Schema(
   {
     clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
+    propertyId: { type: mongoose.Schema.Types.ObjectId, default: null },
     invoiceNumber: { type: String, required: true },
     amountDue: { type: Number, required: true, min: 0 },
     amountPaid: { type: Number, default: 0, min: 0 },
@@ -14,6 +15,7 @@ const invoiceSchema = new mongoose.Schema(
       default: null,
     },
     // Zelle
+    zelleDate: { type: Date },
     zelleDateTime: { type: Date },
     zelleNotes: { type: String },
     // Check
@@ -24,6 +26,7 @@ const invoiceSchema = new mongoose.Schema(
     processedDate: { type: Date },
     paymentMemo: { type: String },
     // General
+    invoiceMonth: { type: String, default: '' },
     notes: { type: String, default: '' },
   },
   { timestamps: true }

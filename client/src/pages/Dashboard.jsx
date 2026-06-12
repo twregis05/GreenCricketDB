@@ -8,7 +8,7 @@ export default function Dashboard() {
   const [clients, setClients] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
-  const [filterPending, setFilterPending] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
   const [selected, setSelected] = useState(null);
   const [showNew, setShowNew] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     let list = clients;
-    if (filterPending) list = list.filter((c) => c.invoicePending);
+    if (statusFilter === 'pending') list = list.filter((c) => c.invoicePending);
+    if (statusFilter === 'paid') list = list.filter((c) => !c.invoicePending);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((c) => {
@@ -35,7 +36,7 @@ export default function Dashboard() {
       });
     }
     setFiltered(list);
-  }, [clients, search, filterPending]);
+  }, [clients, search, statusFilter]);
 
   const fetchClients = async () => {
     setLoading(true);
@@ -122,14 +123,17 @@ export default function Dashboard() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <label className="pending-toggle">
-            <input
-              type="checkbox"
-              checked={filterPending}
-              onChange={(e) => setFilterPending(e.target.checked)}
-            />
-            <span>Invoice Pending Only</span>
-          </label>
+          <div className="status-filter-pills">
+            {['all', 'pending', 'paid'].map((s) => (
+              <button
+                key={s}
+                className={`pill ${statusFilter === s ? 'pill-active' : ''}`}
+                onClick={() => setStatusFilter(s)}
+              >
+                {s === 'all' ? 'All' : s === 'pending' ? 'Pending' : 'Paid'}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (

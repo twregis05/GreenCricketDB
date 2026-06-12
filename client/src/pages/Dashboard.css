@@ -99,21 +99,39 @@
 
 .search-input:focus { border-color: var(--green-mid); }
 
-.pending-toggle {
+.status-filter-pills {
   display: flex;
-  align-items: center;
-  gap: .45rem;
-  font-size: .88rem;
+  gap: .4rem;
+}
+
+.status-filter-pills .pill {
+  padding: .35rem .85rem;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 999px;
+  background: var(--white);
+  font-size: .83rem;
   font-weight: 500;
   color: var(--gray-600);
   cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
   white-space: nowrap;
 }
 
-.pending-toggle input[type="checkbox"] {
-  accent-color: var(--warning);
-  width: 15px;
-  height: 15px;
+.status-filter-pills .pill:hover {
+  border-color: var(--green-light);
+  color: var(--green-dark);
+}
+
+.status-filter-pills .pill-active {
+  background: var(--green-mid);
+  border-color: var(--green-mid);
+  color: var(--white);
+}
+
+.status-filter-pills .pill-active:hover {
+  background: var(--green-dark);
+  border-color: var(--green-dark);
+  color: var(--white);
 }
 
 /* State messages */
