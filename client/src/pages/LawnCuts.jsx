@@ -15,7 +15,7 @@ const BLANK_FORM = {
 };
 
 const fmtDate = (v) =>
-  v ? new Date(v).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+  v ? new Date(v).toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
 const fmtTime = (t) => {
   if (!t) return null;

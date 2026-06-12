@@ -32,6 +32,7 @@ const clientSchema = new mongoose.Schema(
 
     notes:          { type: String },
     invoicePending: { type: Boolean, default: false },
+    manualCredit:   { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
 );

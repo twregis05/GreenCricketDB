@@ -57,6 +57,20 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
+// PATCH adjust manual credit balance
+router.patch('/:id/credit', auth, async (req, res) => {
+  try {
+    const { adjustment } = req.body;
+    const client = await Client.findById(req.params.id);
+    if (!client) return res.status(404).json({ message: 'Client not found' });
+    client.manualCredit = Math.max(0, (client.manualCredit || 0) + Number(adjustment));
+    await client.save();
+    res.json(client);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // DELETE client (cascades to invoices, schedule entries, and lawn cuts)
 router.delete('/:id', auth, async (req, res) => {
   try {

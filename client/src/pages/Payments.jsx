@@ -66,6 +66,13 @@ export default function Payments() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportCols, setExportCols]         = useState(new Set(ALL_EXPORT_COLS));
 
+  // Manual credit manager
+  const [showCreditMgr, setShowCreditMgr]   = useState(false);
+  const [creditMgrMode, setCreditMgrMode]   = useState('add');
+  const [creditMgrAmt, setCreditMgrAmt]     = useState('');
+  const [creditMgrErr, setCreditMgrErr]     = useState('');
+  const [creditMgrSaving, setCreditMgrSaving] = useState(false);
+
   // Apply-credit modal
   const [showCreditForm, setShowCreditForm] = useState(false);
   const [creditTargetId, setCreditTargetId] = useState('');
@@ -208,8 +215,15 @@ export default function Payments() {
         amountPaid:  (target.amountPaid || 0) + amount,
         paymentType: target.paymentType || null,
       }).then((r) => r.data);
-      const results = await Promise.all([...sourcePuts, targetPut]);
-      setInvoices((prev) => prev.map((i) => results.find((r) => r._id === i._id) || i));
+      const promises = [...sourcePuts, targetPut];
+      if (toDrain > 0) {
+        promises.push(
+          api.patch(`/clients/${selectedClient._id}/credit`, { adjustment: -toDrain })
+            .then((r) => { setClients((prev) => prev.map((c) => c._id === r.data._id ? r.data : c)); })
+        );
+      }
+      const results = await Promise.all(promises);
+      setInvoices((prev) => prev.map((i) => results.find((r) => r && r._id === i._id) || i));
       setShowCreditForm(false);
     } catch (err) {
       setCreditError(err.response?.data?.message || 'Failed to apply credit.');
@@ -240,10 +254,12 @@ export default function Payments() {
 
   const totalDue    = invoices.reduce((s, i) => s + (i.amountDue  || 0), 0);
   const totalPaid   = invoices.reduce((s, i) => s + (i.amountPaid || 0), 0);
-  const totalCredit = invoices.reduce((s, i) => {
+  const invoiceCredit = invoices.reduce((s, i) => {
     const over = (i.amountPaid || 0) - (i.amountDue || 0);
     return s + (over > 0 ? over : 0);
   }, 0);
+  const manualCredit = selectedClient?.manualCredit || 0;
+  const totalCredit  = invoiceCredit + manualCredit;
 
   const fmt     = (v) => `$${Number(v || 0).toFixed(2)}`;
   const fmtDate = (v) => (v ? new Date(v).toLocaleDateString('en-US', { timeZone: 'UTC' }) : '—');
@@ -629,10 +645,14 @@ export default function Payments() {
                   <Stat label="Total Due"    value={fmt(totalDue)} />
                   <Stat label="Total Paid"   value={fmt(totalPaid)} />
                   <Stat label="Balance Owed" value={fmt(Math.max(0, totalDue - totalPaid))} highlight={totalDue > totalPaid} />
-                  {totalCredit > 0 && <Stat label="Client Credit" value={fmt(totalCredit)} credit />}
+                  {manualCredit > 0 && <Stat label="Manual Credit" value={fmt(manualCredit)} credit />}
+                  {totalCredit > 0 && <Stat label="Total Credit" value={fmt(totalCredit)} credit />}
                   {totalCredit > 0 && (
                     <button className="btn-apply-credit" onClick={openCreditForm}>Apply Credit</button>
                   )}
+                  <button className="btn-apply-credit" onClick={() => { setCreditMgrMode('add'); setCreditMgrAmt(''); setCreditMgrErr(''); setShowCreditMgr(true); }}>
+                    + / − Credit
+                  </button>
                 </div>
                 {clientProperties.length > 0 && (
                   <div className="inv-property-filter">
@@ -876,6 +896,86 @@ export default function Payments() {
                   {saving ? 'Saving…' : editId ? 'Save Changes' : 'Add Invoice'}
                 </button>
                 <button className="btn btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual credit manager modal */}
+      {showCreditMgr && selectedClient && (
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowCreditMgr(false); }}>
+          <div className="modal-card">
+            <div className="modal-header">
+              <h2 className="modal-title">Client Credit — {clientName(selectedClient)}</h2>
+              <button className="btn-icon btn-close" onClick={() => setShowCreditMgr(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="credit-available-banner">
+                Current manual credit: <strong>{fmt(manualCredit)}</strong>
+              </div>
+              <div className="form-grid">
+                <div className="form-group form-span">
+                  <label>Action</label>
+                  <div className="adv-pills">
+                    <button
+                      className={`pill ${creditMgrMode === 'add' ? 'pill-active' : ''}`}
+                      onClick={() => { setCreditMgrMode('add'); setCreditMgrAmt(''); setCreditMgrErr(''); }}
+                    >
+                      Add Credit
+                    </button>
+                    <button
+                      className={`pill ${creditMgrMode === 'remove' ? 'pill-active' : ''}`}
+                      onClick={() => { setCreditMgrMode('remove'); setCreditMgrAmt(''); setCreditMgrErr(''); }}
+                    >
+                      Remove Credit
+                    </button>
+                  </div>
+                </div>
+                <div className="form-group form-span">
+                  <label>Amount</label>
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={creditMgrAmt}
+                    onChange={(e) => setCreditMgrAmt(e.target.value)}
+                  />
+                  {creditMgrMode === 'remove' && (
+                    <p className="field-hint">Max removable: {fmt(manualCredit)}</p>
+                  )}
+                </div>
+              </div>
+              {creditMgrErr && <p className="form-error">{creditMgrErr}</p>}
+              <div className="modal-footer-actions">
+                <button
+                  className="btn btn-primary"
+                  disabled={creditMgrSaving || !creditMgrAmt}
+                  onClick={async () => {
+                    const amt = Number(creditMgrAmt);
+                    if (!amt || amt <= 0) { setCreditMgrErr('Enter a valid amount.'); return; }
+                    if (creditMgrMode === 'remove' && amt > manualCredit) {
+                      setCreditMgrErr(`Cannot remove more than the current balance of ${fmt(manualCredit)}.`);
+                      return;
+                    }
+                    setCreditMgrSaving(true);
+                    setCreditMgrErr('');
+                    try {
+                      const adjustment = creditMgrMode === 'add' ? amt : -amt;
+                      const { data } = await api.patch(`/clients/${selectedClient._id}/credit`, { adjustment });
+                      setClients((prev) => prev.map((c) => c._id === data._id ? data : c));
+                      setShowCreditMgr(false);
+                    } catch (err) {
+                      setCreditMgrErr(err.response?.data?.message || 'Failed to update credit.');
+                    } finally {
+                      setCreditMgrSaving(false);
+                    }
+                  }}
+                >
+                  {creditMgrSaving ? 'Saving…' : creditMgrMode === 'add' ? `Add ${creditMgrAmt ? fmt(Number(creditMgrAmt)) : 'Credit'}` : `Remove ${creditMgrAmt ? fmt(Number(creditMgrAmt)) : 'Credit'}`}
+                </button>
+                <button className="btn btn-ghost" onClick={() => setShowCreditMgr(false)}>Cancel</button>
               </div>
             </div>
           </div>
