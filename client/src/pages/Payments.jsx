@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import ClientSearch from '../components/ClientSearch';
 import api from '../utils/api';
 import { clientName, clientInitials } from '../utils/client';
+import { useAuth } from '../contexts/AuthContext';
 import * as XLSX from 'xlsx';
 import './Payments.css';
 
@@ -34,6 +35,7 @@ const BLANK_INVOICE = {
 };
 
 export default function Payments() {
+  const { canEdit } = useAuth();
   const { clientId: routeClientId } = useParams();
   const navigate = useNavigate();
 
@@ -597,10 +599,12 @@ export default function Payments() {
                             </div>
                           )}
                           {inv.notes && <div className="inv-notes">{inv.notes}</div>}
-                          <div className="inv-actions">
-                            <button className="cal-btn" onClick={() => openEdit(inv)}>✏️ Edit</button>
-                            <button className="cal-btn danger" onClick={() => remove(inv._id)}>🗑 Delete</button>
-                          </div>
+                          {canEdit && (
+                            <div className="inv-actions">
+                              <button className="cal-btn" onClick={() => openEdit(inv)}>✏️ Edit</button>
+                              <button className="cal-btn danger" onClick={() => remove(inv._id)}>🗑 Delete</button>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -624,7 +628,7 @@ export default function Payments() {
                   navigate(id ? `/payments/${id}` : '/payments');
                 }}
               />
-              {selectedClientId && (
+              {selectedClientId && canEdit && (
                 <button className="btn-action btn-add" onClick={openNew}>
                   + New Invoice
                 </button>
@@ -647,12 +651,14 @@ export default function Payments() {
                   <Stat label="Balance Owed" value={fmt(Math.max(0, totalDue - totalPaid))} highlight={totalDue > totalPaid} />
                   {manualCredit > 0 && <Stat label="Manual Credit" value={fmt(manualCredit)} credit />}
                   {totalCredit > 0 && <Stat label="Total Credit" value={fmt(totalCredit)} credit />}
-                  {totalCredit > 0 && (
+                  {totalCredit > 0 && canEdit && (
                     <button className="btn-apply-credit" onClick={openCreditForm}>Apply Credit</button>
                   )}
-                  <button className="btn-apply-credit" onClick={() => { setCreditMgrMode('add'); setCreditMgrAmt(''); setCreditMgrErr(''); setShowCreditMgr(true); }}>
-                    + / − Credit
-                  </button>
+                  {canEdit && (
+                    <button className="btn-apply-credit" onClick={() => { setCreditMgrMode('add'); setCreditMgrAmt(''); setCreditMgrErr(''); setShowCreditMgr(true); }}>
+                      + / − Credit
+                    </button>
+                  )}
                 </div>
                 {clientProperties.length > 0 && (
                   <div className="inv-property-filter">
@@ -737,10 +743,12 @@ export default function Payments() {
                         </div>
                       )}
                       {inv.notes && <div className="inv-notes">{inv.notes}</div>}
-                      <div className="inv-actions">
-                        <button className="cal-btn" onClick={() => openEdit(inv)}>✏️ Edit</button>
-                        <button className="cal-btn danger" onClick={() => remove(inv._id)}>🗑 Delete</button>
-                      </div>
+                      {canEdit && (
+                        <div className="inv-actions">
+                          <button className="cal-btn" onClick={() => openEdit(inv)}>✏️ Edit</button>
+                          <button className="cal-btn danger" onClick={() => remove(inv._id)}>🗑 Delete</button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

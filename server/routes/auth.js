@@ -41,12 +41,25 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
+      { userId: user._id, email: user.email, role: user.role, readOnly: user.readOnly || false },
       process.env.JWT_SECRET,
       { expiresIn: '12h' }
     );
 
     res.json({ token, email: user.email, role: user.role });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/auth/me — returns live user data from DB (not cached in JWT)
+const auth = require('../middleware/auth');
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('email role readOnly approved');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user.approved) return res.status(403).json({ message: 'Account access revoked.' });
+    res.json({ email: user.email, role: user.role, readOnly: user.readOnly || false });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

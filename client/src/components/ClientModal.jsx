@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { useAuth } from '../contexts/AuthContext';
 import './ClientModal.css';
 
 const EMPTY = {
@@ -21,8 +22,9 @@ const displayName = (c) =>
 const DAY_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export default function ClientModal({ client, onClose, onSaved, onDeleted }) {
+  const { canEdit } = useAuth();
   const [form, setForm] = useState(client ? { ...EMPTY, ...client } : EMPTY);
-  const [editing, setEditing] = useState(!client);
+  const [editing, setEditing] = useState(!client && canEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [schedules, setSchedules] = useState([]);
@@ -139,7 +141,7 @@ export default function ClientModal({ client, onClose, onSaved, onDeleted }) {
             )}
           </div>
           <div className="modal-header-actions">
-            {client && !editing && (
+            {client && !editing && canEdit && (
               <button className="btn-icon" onClick={() => setEditing(true)} title="Edit">✏️</button>
             )}
             <button className="btn-icon btn-close" onClick={onClose} title="Close">✕</button>
@@ -233,9 +235,11 @@ export default function ClientModal({ client, onClose, onSaved, onDeleted }) {
               >
                 View Invoices
               </button>
-              <button className="btn btn-danger-outline" onClick={remove}>
-                Delete Client
-              </button>
+              {canEdit && (
+                <button className="btn btn-danger-outline" onClick={remove}>
+                  Delete Client
+                </button>
+              )}
             </div>
           </div>
         ) : (

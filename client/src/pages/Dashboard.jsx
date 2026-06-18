@@ -2,9 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import ClientModal from '../components/ClientModal';
 import api from '../utils/api';
+import { useAuth } from '../contexts/AuthContext';
 import './Dashboard.css';
 
 export default function Dashboard() {
+  const { canEdit } = useAuth();
   const [clients, setClients] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
@@ -96,21 +98,23 @@ export default function Dashboard() {
             <h1 className="page-title">Client Directory</h1>
             <p className="page-subtitle">{clients.length} client{clients.length !== 1 ? 's' : ''} on record</p>
           </div>
-          <div className="header-actions">
-            <button className="btn-action btn-csv" onClick={() => fileRef.current.click()}>
-              ↑ Import CSV
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv"
-              style={{ display: 'none' }}
-              onChange={handleCsvImport}
-            />
-            <button className="btn-action btn-add" onClick={() => setShowNew(true)}>
-              + Add Client
-            </button>
-          </div>
+          {canEdit && (
+            <div className="header-actions">
+              <button className="btn-action btn-csv" onClick={() => fileRef.current.click()}>
+                ↑ Import CSV
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".csv"
+                style={{ display: 'none' }}
+                onChange={handleCsvImport}
+              />
+              <button className="btn-action btn-add" onClick={() => setShowNew(true)}>
+                + Add Client
+              </button>
+            </div>
+          )}
         </div>
 
         {csvMsg && <div className="csv-banner">{csvMsg}</div>}
@@ -198,7 +202,7 @@ export default function Dashboard() {
         />
       )}
 
-      {showNew && (
+      {showNew && canEdit && (
         <ClientModal
           client={null}
           onClose={() => setShowNew(false)}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../utils/api';
 import { clientName } from '../utils/client';
+import { useAuth } from '../contexts/AuthContext';
 import './Schedule.css';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -25,6 +26,7 @@ const resolveProperty = (entry) => {
 };
 
 export default function Schedule() {
+  const { canEdit } = useAuth();
   const [schedules, setSchedules] = useState([]);
   const [clients, setClients] = useState([]);
   const [routeFilter, setRouteFilter] = useState('all');
@@ -132,9 +134,11 @@ export default function Schedule() {
             <button className="btn-action btn-csv no-print" onClick={() => window.print()}>
               🖨 Print PDF
             </button>
-            <button className="btn-action btn-add no-print" onClick={openNew}>
-              + Add Entry
-            </button>
+            {canEdit && (
+              <button className="btn-action btn-add no-print" onClick={openNew}>
+                + Add Entry
+              </button>
+            )}
           </div>
         </div>
 
@@ -148,6 +152,7 @@ export default function Schedule() {
                 schedules={filtered.filter((s) => s.route === 1)}
                 onEdit={openEdit}
                 onDelete={remove}
+                canEdit={canEdit}
               />
             )}
             {(routeFilter === 'all' || routeFilter === '2') && (
@@ -156,6 +161,7 @@ export default function Schedule() {
                 schedules={filtered.filter((s) => s.route === 2)}
                 onEdit={openEdit}
                 onDelete={remove}
+                canEdit={canEdit}
               />
             )}
           </>
@@ -246,7 +252,7 @@ export default function Schedule() {
   );
 }
 
-function RouteCalendar({ route, schedules, onEdit, onDelete }) {
+function RouteCalendar({ route, schedules, onEdit, onDelete, canEdit }) {
   return (
     <div className="route-section">
       <div className="route-label">
@@ -282,10 +288,12 @@ function RouteCalendar({ route, schedules, onEdit, onDelete }) {
                           <span className="freq-tag">{s.frequency}</span>
                         </div>
                         {s.notes && <div className="cal-entry-notes">{s.notes}</div>}
-                        <div className="cal-entry-actions no-print">
-                          <button className="cal-btn" onClick={() => onEdit(s)} title="Edit">✏️</button>
-                          <button className="cal-btn" onClick={() => onDelete(s._id)} title="Delete">🗑</button>
-                        </div>
+                        {canEdit && (
+                          <div className="cal-entry-actions no-print">
+                            <button className="cal-btn" onClick={() => onEdit(s)} title="Edit">✏️</button>
+                            <button className="cal-btn" onClick={() => onDelete(s._id)} title="Delete">🗑</button>
+                          </div>
+                        )}
                       </div>
                     );
                   })

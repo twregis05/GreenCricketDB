@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import ClientSearch from '../components/ClientSearch';
 import api from '../utils/api';
 import { clientName } from '../utils/client';
+import { useAuth } from '../contexts/AuthContext';
 import './LawnCuts.css';
 
 const BLANK_FORM = {
@@ -26,6 +27,7 @@ const fmtTime = (t) => {
 };
 
 export default function LawnCuts() {
+  const { canEdit } = useAuth();
   const { clientId: routeClientId } = useParams();
   const navigate = useNavigate();
 
@@ -139,7 +141,7 @@ export default function LawnCuts() {
               navigate(id ? `/lawncuts/${id}` : '/lawncuts');
             }}
           />
-          {selectedClientId && (
+          {selectedClientId && canEdit && (
             <button className="btn-action btn-add" onClick={openNew}>
               + Log Cut
             </button>
@@ -220,10 +222,12 @@ export default function LawnCuts() {
                     {cut.notes && <div className="lc-notes">{cut.notes}</div>}
                   </div>
 
-                  <div className="lc-card-actions">
-                    <button className="cal-btn" onClick={() => openEdit(cut)}>✏️</button>
-                    <button className="cal-btn danger" onClick={() => remove(cut._id)}>🗑</button>
-                  </div>
+                  {canEdit && (
+                    <div className="lc-card-actions">
+                      <button className="cal-btn" onClick={() => openEdit(cut)}>✏️</button>
+                      <button className="cal-btn danger" onClick={() => remove(cut._id)}>🗑</button>
+                    </div>
+                  )}
                 </div>
               );
             })}
