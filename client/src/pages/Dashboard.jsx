@@ -11,6 +11,8 @@ export default function Dashboard() {
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy]   = useState('name');
+  const [sortDir, setSortDir] = useState('asc');
   const [selected, setSelected] = useState(null);
   const [showNew, setShowNew] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    let list = clients;
+    let list = [...clients];
     if (statusFilter === 'pending') list = list.filter((c) => c.invoicePending);
     if (statusFilter === 'paid') list = list.filter((c) => !c.invoicePending);
     if (search.trim()) {
@@ -37,8 +39,24 @@ export default function Dashboard() {
         return name.includes(q) || (c.email || '').toLowerCase().includes(q) || (c.phone || '').includes(q) || contactMatch;
       });
     }
+    const clientDisplayName = (c) => c.clientType === 'group'
+      ? (c.groupName || '')
+      : `${c.lastName || ''} ${c.firstName || ''}`.trim();
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'name') {
+        cmp = clientDisplayName(a).localeCompare(clientDisplayName(b));
+      } else if (sortBy === 'dateAdded') {
+        cmp = new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+      } else if (sortBy === 'status') {
+        cmp = (b.invoicePending ? 1 : 0) - (a.invoicePending ? 1 : 0);
+      } else if (sortBy === 'properties') {
+        cmp = (a.properties?.length || 0) - (b.properties?.length || 0);
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
     setFiltered(list);
-  }, [clients, search, statusFilter]);
+  }, [clients, search, statusFilter, sortBy, sortDir]);
 
   const fetchClients = async () => {
     setLoading(true);
@@ -139,6 +157,22 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+        <div className="client-sort-row">
+          <span className="client-sort-label">Sort by</span>
+          <select className="client-sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="name">Name</option>
+            <option value="dateAdded">Date Added</option>
+            <option value="status">Invoice Status</option>
+            <option value="properties"># Properties</option>
+          </select>
+          <button
+            className="client-sort-dir"
+            onClick={() => setSortDir((d) => d === 'asc' ? 'desc' : 'asc')}
+            title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
+          >
+            {sortDir === 'asc' ? '↑' : '↓'}
+          </button>
+        </div>
 
         {loading ? (
           <div className="state-msg">Loading clients…</div>
@@ -196,6 +230,7 @@ export default function Dashboard() {
       {selected && (
         <ClientModal
           client={selected}
+          allClients={clients}
           onClose={() => setSelected(null)}
           onSaved={handleSaved}
           onDeleted={handleDeleted}
@@ -205,6 +240,7 @@ export default function Dashboard() {
       {showNew && canEdit && (
         <ClientModal
           client={null}
+          allClients={clients}
           onClose={() => setShowNew(false)}
           onSaved={handleSaved}
           onDeleted={() => {}}

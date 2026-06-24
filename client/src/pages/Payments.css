@@ -117,9 +117,11 @@
 
 .invoice-card:hover { box-shadow: var(--shadow-sm); }
 
-.invoice-card.status-paid     { border-left: 4px solid var(--green-mid); }
-.invoice-card.status-pending  { border-left: 4px solid var(--warning); }
-.invoice-card.status-overpaid { border-left: 4px solid #7b1fa2; background: #fdf6ff; }
+.invoice-card.status-paid        { border-left: 4px solid var(--green-mid); }
+.invoice-card.status-pending     { border-left: 4px solid var(--warning); }
+.invoice-card.status-overpaid    { border-left: 4px solid #7b1fa2; background: #fdf6ff; }
+.invoice-card.status-processing  { border-left: 4px solid #1565c0; background: #f0f6ff; }
+.invoice-card.status-overdue     { border-left: 4px solid var(--danger); background: #fff5f5; }
 
 .inv-top {
   display: flex;
@@ -141,9 +143,12 @@
   font-weight: 700;
 }
 
-.badge-paid     { background: var(--green-pale);   color: var(--green-primary); }
-.badge-pending  { background: var(--warning-light); color: var(--warning); }
-.badge-overpaid { background: #f3e5f5; color: #7b1fa2; }
+.badge-paid        { background: var(--green-pale);   color: var(--green-primary); }
+.badge-pending     { background: var(--warning-light); color: var(--warning); }
+.badge-overpaid    { background: #f3e5f5; color: #7b1fa2; }
+.badge-processing  { background: #dbeafe; color: #1565c0; }
+.badge-overdue     { background: var(--danger-light); color: var(--danger); }
+.badge-job-done    { background: #e8f5e9; color: #2e7d32; }
 
 .overpaid-notice {
   background: #f3e5f5;
@@ -549,4 +554,22 @@
   height: 15px;
   flex-shrink: 0;
   cursor: pointer;
+}
+
+/* Checkbox toggle in invoice form */
+.inv-toggle {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .9rem;
+  color: var(--gray-700);
+  cursor: pointer;
+  margin-top: .25rem;
+}
+.inv-toggle input[type="checkbox"] {
+  accent-color: var(--green-mid);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
 }

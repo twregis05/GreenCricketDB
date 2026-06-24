@@ -177,3 +177,31 @@
   font-style: italic;
   margin-top: .2rem;
 }
+
+/* ── Sort controls ───────────────────────────────────── */
+.lc-sort-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .75rem;
+}
+
+.lc-sort-label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.lc-sort-select {
+  padding: .38rem .65rem;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: .88rem;
+  background: var(--white);
+  color: var(--gray-800);
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.lc-sort-select:focus { border-color: var(--green-mid); outline: none; }

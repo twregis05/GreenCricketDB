@@ -13,6 +13,7 @@ const ALL_EXPORT_COLS = [
   'Billing Month', 'Date Sent', 'Payment Type', 'Property',
   'Zelle Date', 'Zelle Notes', 'Check Date', 'Check #', 'Check Memo',
   'Date Processed', 'Payment Memo', 'Notes',
+  'Payment Processing', 'Job Completed',
 ];
 
 const BLANK_INVOICE = {
@@ -32,6 +33,8 @@ const BLANK_INVOICE = {
   paymentMemo: '',
   invoiceMonth: '',
   notes: '',
+  paymentProcessing: false,
+  jobCompleted: false,
 };
 
 export default function Payments() {
@@ -50,6 +53,8 @@ export default function Payments() {
   const [loading, setLoading]               = useState(false);
 
   const [propertyFilter, setPropertyFilter] = useState('all');
+  const [invSortBy, setInvSortBy]           = useState('dateSent');
+  const [invSortDir, setInvSortDir]         = useState('desc');
 
   // Advanced search
   const [showAdvSearch, setShowAdvSearch]   = useState(false);
@@ -63,6 +68,8 @@ export default function Payments() {
   const [advMaxAmt, setAdvMaxAmt]           = useState('');
   const [advMinInv, setAdvMinInv]           = useState('');
   const [advMaxInv, setAdvMaxInv]           = useState('');
+  const [advProcessing, setAdvProcessing]   = useState('all');
+  const [advJobCompleted, setAdvJobCompleted] = useState('all');
   const [advSortBy, setAdvSortBy]           = useState('dateSent');
   const [advSortDir, setAdvSortDir]         = useState('desc');
   const [showExportModal, setShowExportModal] = useState(false);
@@ -134,8 +141,10 @@ export default function Payments() {
       checkMemo:    inv.checkMemo || '',
       processedDate: toDateStr(inv.processedDate),
       paymentMemo:  inv.paymentMemo || '',
-      invoiceMonth: inv.invoiceMonth || '',
-      notes:        inv.notes || '',
+      invoiceMonth:      inv.invoiceMonth || '',
+      notes:             inv.notes || '',
+      paymentProcessing: inv.paymentProcessing || false,
+      jobCompleted:      inv.jobCompleted || false,
     });
     setEditId(inv._id);
     setError('');
@@ -250,9 +259,29 @@ export default function Payments() {
     return props.find((p) => p._id?.toString() === inv.propertyId?.toString()) || null;
   };
 
-  const filteredInvoices = propertyFilter === 'all'
-    ? invoices
-    : invoices.filter((i) => i.propertyId?.toString() === propertyFilter);
+  const filteredInvoices = (() => {
+    const base = propertyFilter === 'all'
+      ? [...invoices]
+      : invoices.filter((i) => i.propertyId?.toString() === propertyFilter);
+
+    base.sort((a, b) => {
+      let cmp = 0;
+      if (invSortBy === 'dateSent') {
+        cmp = new Date(a.dateSent || 0) - new Date(b.dateSent || 0);
+      } else if (invSortBy === 'invoiceMonth') {
+        cmp = (a.invoiceMonth || '').localeCompare(b.invoiceMonth || '');
+      } else if (invSortBy === 'invoiceNumber') {
+        cmp = parseInt(a.invoiceNumber || 0, 10) - parseInt(b.invoiceNumber || 0, 10);
+      } else if (invSortBy === 'amountDue') {
+        cmp = (a.amountDue || 0) - (b.amountDue || 0);
+      } else if (invSortBy === 'status') {
+        cmp = invStatus(a).localeCompare(invStatus(b));
+      }
+      return invSortDir === 'asc' ? cmp : -cmp;
+    });
+
+    return base;
+  })();
 
   const totalDue    = invoices.reduce((s, i) => s + (i.amountDue  || 0), 0);
   const totalPaid   = invoices.reduce((s, i) => s + (i.amountPaid || 0), 0);
@@ -274,6 +303,11 @@ export default function Payments() {
     const paid = inv.amountPaid || 0;
     if (paid > due)  return 'overpaid';
     if (paid >= due) return 'paid';
+    if (inv.paymentProcessing) return 'processing';
+    if (inv.dateSent) {
+      const daysSince = (Date.now() - new Date(inv.dateSent).getTime()) / 86400000;
+      if (daysSince > 3) return 'overdue';
+    }
     return 'pending';
   };
 
@@ -283,8 +317,12 @@ export default function Payments() {
       const name = clientName(inv.clientId).toLowerCase();
       if (!name.includes(q) && !(inv.invoiceNumber || '').toLowerCase().includes(q) && !(inv.notes || '').toLowerCase().includes(q)) return false;
     }
-    if (advStatus  !== 'all' && invStatus(inv) !== advStatus)               return false;
-    if (advPayType !== 'all' && (inv.paymentType || 'none') !== advPayType) return false;
+    if (advStatus  !== 'all' && invStatus(inv) !== advStatus)                         return false;
+    if (advPayType !== 'all' && (inv.paymentType || 'none') !== advPayType)            return false;
+    if (advProcessing   === 'yes' && !inv.paymentProcessing)                          return false;
+    if (advProcessing   === 'no'  &&  inv.paymentProcessing)                          return false;
+    if (advJobCompleted === 'yes' && !inv.jobCompleted)                               return false;
+    if (advJobCompleted === 'no'  &&  inv.jobCompleted)                               return false;
     if (advMonth   && inv.invoiceMonth !== advMonth)                         return false;
     if (advMinAmt !== '' && (inv.amountDue || 0) < Number(advMinAmt))        return false;
     if (advMaxAmt !== '' && (inv.amountDue || 0) > Number(advMaxAmt))        return false;
@@ -351,9 +389,11 @@ export default function Payments() {
         'Check Date':     fmtD(inv.checkDate),
         'Check #':        inv.checkNumber  || '',
         'Check Memo':     inv.checkMemo    || '',
-        'Date Processed': fmtD(inv.processedDate),
-        'Payment Memo':   inv.paymentMemo  || '',
-        'Notes':          inv.notes        || '',
+        'Date Processed':     fmtD(inv.processedDate),
+        'Payment Memo':       inv.paymentMemo  || '',
+        'Notes':              inv.notes        || '',
+        'Payment Processing': inv.paymentProcessing ? 'Yes' : 'No',
+        'Job Completed':      inv.jobCompleted      ? 'Yes' : 'No',
       };
     });
 
@@ -433,7 +473,7 @@ export default function Payments() {
                 <div className="adv-filter-group">
                   <label className="adv-filter-label">Status</label>
                   <div className="adv-pills">
-                    {['all', 'pending', 'paid', 'overpaid'].map((s) => (
+                    {['all', 'pending', 'overdue', 'processing', 'paid', 'overpaid'].map((s) => (
                       <button
                         key={s}
                         className={`pill ${advStatus === s ? 'pill-active' : ''}`}
@@ -511,6 +551,22 @@ export default function Payments() {
                     />
                   </div>
                 </div>
+                <div className="adv-filter-group">
+                  <label className="adv-filter-label">Payment Processing</label>
+                  <div className="adv-pills">
+                    {[['all','All'],['yes','Yes'],['no','No']].map(([v,l]) => (
+                      <button key={v} className={`pill ${advProcessing === v ? 'pill-active' : ''}`} onClick={() => setAdvProcessing(v)}>{l}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="adv-filter-group">
+                  <label className="adv-filter-label">Job Completed</label>
+                  <div className="adv-pills">
+                    {[['all','All'],['yes','Yes'],['no','No']].map(([v,l]) => (
+                      <button key={v} className={`pill ${advJobCompleted === v ? 'pill-active' : ''}`} onClick={() => setAdvJobCompleted(v)}>{l}</button>
+                    ))}
+                  </div>
+                </div>
                 <div className="adv-filter-group adv-sort-group">
                   <label className="adv-filter-label">Sort By</label>
                   <div className="adv-range-row">
@@ -565,8 +621,9 @@ export default function Payments() {
                           <div className="inv-top">
                             <div className="inv-num">#{inv.invoiceNumber}</div>
                             <span className={`inv-status-badge badge-${status}`}>
-                              {status === 'paid' ? 'Paid' : status === 'overpaid' ? 'Overpaid' : 'Pending'}
+                              {status === 'paid' ? 'Paid' : status === 'overpaid' ? 'Overpaid' : status === 'processing' ? 'Processing' : status === 'overdue' ? 'Overdue' : 'Pending'}
                             </span>
+                            {inv.jobCompleted && <span className="inv-status-badge badge-job-done">✓ Job Done</span>}
                           </div>
                           <div className="inv-amounts">
                             <div className="inv-amt">
@@ -685,6 +742,26 @@ export default function Payments() {
               </div>
             )}
 
+            {selectedClientId && !loading && invoices.length > 1 && (
+              <div className="lc-sort-row">
+                <span className="lc-sort-label">Sort by</span>
+                <select className="lc-sort-select" value={invSortBy} onChange={(e) => setInvSortBy(e.target.value)}>
+                  <option value="dateSent">Date Sent</option>
+                  <option value="invoiceMonth">Billing Month</option>
+                  <option value="invoiceNumber">Invoice #</option>
+                  <option value="amountDue">Amount Due</option>
+                  <option value="status">Status</option>
+                </select>
+                <button
+                  className="adv-sort-dir"
+                  onClick={() => setInvSortDir((d) => d === 'asc' ? 'desc' : 'asc')}
+                  title={invSortDir === 'desc' ? 'Descending' : 'Ascending'}
+                >
+                  {invSortDir === 'desc' ? '↓' : '↑'}
+                </button>
+              </div>
+            )}
+
             {!selectedClientId ? (
               <div className="state-msg">Select a client above to view their invoices.</div>
             ) : loading ? (
@@ -704,8 +781,9 @@ export default function Payments() {
                       <div className="inv-top">
                         <div className="inv-num">#{inv.invoiceNumber}</div>
                         <span className={`inv-status-badge badge-${status}`}>
-                          {status === 'paid' ? 'Paid' : status === 'overpaid' ? 'Overpaid' : 'Pending'}
+                          {status === 'paid' ? 'Paid' : status === 'overpaid' ? 'Overpaid' : status === 'processing' ? 'Processing' : status === 'overdue' ? 'Overdue' : 'Pending'}
                         </span>
+                        {inv.jobCompleted && <span className="inv-status-badge badge-job-done">✓ Job Done</span>}
                       </div>
                       <div className="inv-amounts">
                         <div className="inv-amt">
@@ -887,6 +965,28 @@ export default function Payments() {
                   <input type="month" value={form.invoiceMonth} onChange={set('invoiceMonth')} />
                 </div>
 
+                <div className="form-group">
+                  <label>Job Completed</label>
+                  <label className="inv-toggle">
+                    <input
+                      type="checkbox"
+                      checked={!!form.jobCompleted}
+                      onChange={(e) => setForm((f) => ({ ...f, jobCompleted: e.target.checked }))}
+                    />
+                    <span>Mark as completed</span>
+                  </label>
+                </div>
+                <div className="form-group">
+                  <label>Payment Processing</label>
+                  <label className="inv-toggle">
+                    <input
+                      type="checkbox"
+                      checked={!!form.paymentProcessing}
+                      onChange={(e) => setForm((f) => ({ ...f, paymentProcessing: e.target.checked }))}
+                    />
+                    <span>Payment in progress</span>
+                  </label>
+                </div>
                 <div className="form-group form-span">
                   <label>Notes</label>
                   <textarea

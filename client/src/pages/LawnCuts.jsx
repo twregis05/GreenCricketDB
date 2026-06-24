@@ -41,6 +41,8 @@ export default function LawnCuts() {
   const [saving, setSaving]                 = useState(false);
   const [error, setError]                   = useState('');
   const [loading, setLoading]               = useState(false);
+  const [sortBy, setSortBy]                 = useState('date');
+  const [sortDir, setSortDir]               = useState('desc');
 
   useEffect(() => {
     api.get('/clients').then(({ data }) => setClients(data));
@@ -59,15 +61,34 @@ export default function LawnCuts() {
   const selectedClient = clients.find((c) => c._id === selectedClientId);
   const clientProperties = selectedClient?.properties || [];
 
-  const filteredCuts = propertyFilter === 'all'
-    ? cuts
-    : cuts.filter((c) => c.propertyId?.toString() === propertyFilter);
-
-  // Resolve a property object from a cut entry using the already-loaded client
   const resolveProperty = (cut) => {
     if (!cut.propertyId) return null;
     return clientProperties.find((p) => p._id?.toString() === cut.propertyId?.toString()) || null;
   };
+
+  const filteredCuts = (() => {
+    const base = propertyFilter === 'all'
+      ? [...cuts]
+      : cuts.filter((c) => c.propertyId?.toString() === propertyFilter);
+
+    base.sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'date') {
+        cmp = new Date(a.cutDate) - new Date(b.cutDate);
+      } else if (sortBy === 'property') {
+        const pa = resolveProperty(a);
+        const pb = resolveProperty(b);
+        const la = pa ? (pa.label || pa.address) : '';
+        const lb = pb ? (pb.label || pb.address) : '';
+        cmp = la.localeCompare(lb);
+      } else if (sortBy === 'time') {
+        cmp = (a.cutTime || '').localeCompare(b.cutTime || '');
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    return base;
+  })();
 
   const openNew = () => {
     setForm({ ...BLANK_FORM, clientId: selectedClientId });
@@ -116,7 +137,9 @@ export default function LawnCuts() {
     setCuts((prev) => prev.filter((c) => c._id !== id));
   };
 
-  const lastCut = cuts[0] ? fmtDate(cuts[0].cutDate) : '—';
+  const lastCut = cuts.length
+    ? fmtDate(cuts.reduce((latest, c) => c.cutDate > latest ? c.cutDate : latest, cuts[0].cutDate))
+    : '—';
 
   return (
     <div className="page">
@@ -186,6 +209,25 @@ export default function LawnCuts() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Sort controls */}
+        {selectedClientId && !loading && cuts.length > 1 && (
+          <div className="lc-sort-row">
+            <span className="lc-sort-label">Sort by</span>
+            <select className="lc-sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="date">Date</option>
+              <option value="property">Property</option>
+              <option value="time">Time of Day</option>
+            </select>
+            <button
+              className="adv-sort-dir"
+              onClick={() => setSortDir((d) => d === 'asc' ? 'desc' : 'asc')}
+              title={sortDir === 'desc' ? 'Descending' : 'Ascending'}
+            >
+              {sortDir === 'desc' ? '↓' : '↑'}
+            </button>
           </div>
         )}
 

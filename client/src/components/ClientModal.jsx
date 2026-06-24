@@ -21,13 +21,14 @@ const displayName = (c) =>
 
 const DAY_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-export default function ClientModal({ client, onClose, onSaved, onDeleted }) {
+export default function ClientModal({ client, allClients = [], onClose, onSaved, onDeleted }) {
   const { canEdit } = useAuth();
   const [form, setForm] = useState(client ? { ...EMPTY, ...client } : EMPTY);
   const [editing, setEditing] = useState(!client && canEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [schedules, setSchedules] = useState([]);
+  const [dupWarning, setDupWarning] = useState(null); // { matches: [], proceed: fn }
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -83,18 +84,7 @@ export default function ClientModal({ client, onClose, onSaved, onDeleted }) {
     });
 
   // ── Save ──────────────────────────────────────────────
-  const save = async () => {
-    if (form.clientType === 'individual') {
-      if (!form.firstName.trim() || !form.lastName.trim()) {
-        setError('First and last name are required.');
-        return;
-      }
-    } else {
-      if (!form.groupName.trim()) {
-        setError('Group name is required.');
-        return;
-      }
-    }
+  const doSave = async () => {
     setSaving(true);
     setError('');
     try {
@@ -108,6 +98,45 @@ export default function ClientModal({ client, onClose, onSaved, onDeleted }) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const save = async () => {
+    if (form.clientType === 'individual') {
+      if (!form.firstName.trim() || !form.lastName.trim()) {
+        setError('First and last name are required.');
+        return;
+      }
+    } else {
+      if (!form.groupName.trim()) {
+        setError('Group name is required.');
+        return;
+      }
+    }
+
+    // Duplicate check only for new clients
+    if (!client?._id) {
+      const nameLower = form.clientType === 'individual'
+        ? `${form.firstName.trim()} ${form.lastName.trim()}`.toLowerCase()
+        : form.groupName.trim().toLowerCase();
+      const emailLower = (form.email || '').trim().toLowerCase();
+
+      const matches = allClients.filter((c) => {
+        const cName = c.clientType === 'individual'
+          ? `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase()
+          : (c.groupName || '').toLowerCase();
+        const cEmail = (c.email || '').toLowerCase();
+        const nameMatch = cName.trim() === nameLower;
+        const emailMatch = emailLower && cEmail && cEmail === emailLower;
+        return nameMatch || emailMatch;
+      });
+
+      if (matches.length > 0) {
+        setDupWarning({ matches, proceed: doSave });
+        return;
+      }
+    }
+
+    await doSave();
   };
 
   const remove = async () => {
@@ -125,6 +154,53 @@ export default function ClientModal({ client, onClose, onSaved, onDeleted }) {
     setEditing(false);
     setError('');
   };
+
+  if (dupWarning) {
+    const nameLabel = form.clientType === 'individual'
+      ? `${form.firstName.trim()} ${form.lastName.trim()}`
+      : form.groupName.trim();
+    return (
+      <div className="modal-backdrop">
+        <div className="modal-card dup-warning-card">
+          <div className="modal-header">
+            <h2 className="modal-title">Possible Duplicate</h2>
+          </div>
+          <div className="modal-body">
+            <p className="dup-warning-msg">
+              A client named <strong>{nameLabel}</strong> may already exist. The following client{dupWarning.matches.length > 1 ? 's' : ''} match{dupWarning.matches.length === 1 ? 'es' : ''} by name or email:
+            </p>
+            <ul className="dup-match-list">
+              {dupWarning.matches.map((m) => {
+                const mName = m.clientType === 'individual'
+                  ? `${m.firstName || ''} ${m.lastName || ''}`.trim()
+                  : m.groupName;
+                const mEmail = m.email || (m.contacts?.[0]?.email) || '';
+                return (
+                  <li key={m._id} className="dup-match-item">
+                    <strong>{mName}</strong>
+                    {mEmail && <span className="dup-match-email"> — {mEmail}</span>}
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="dup-warning-sub">Do you still want to create this client?</p>
+            <div className="modal-footer-actions">
+              <button
+                className="btn btn-primary"
+                disabled={saving}
+                onClick={() => { setDupWarning(null); dupWarning.proceed(); }}
+              >
+                {saving ? 'Saving…' : 'Yes, Create Anyway'}
+              </button>
+              <button className="btn btn-ghost" onClick={() => setDupWarning(null)}>
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>

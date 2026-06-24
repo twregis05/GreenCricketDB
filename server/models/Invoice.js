@@ -28,6 +28,8 @@ const invoiceSchema = new mongoose.Schema(
     // General
     invoiceMonth: { type: String, default: '' },
     notes: { type: String, default: '' },
+    paymentProcessing: { type: Boolean, default: false },
+    jobCompleted:      { type: Boolean, default: false },
   },
   { timestamps: true }
 );

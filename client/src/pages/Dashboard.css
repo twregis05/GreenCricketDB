@@ -82,7 +82,7 @@
   display: flex;
   gap: 1rem;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: .75rem;
   flex-wrap: wrap;
 }
 
@@ -133,6 +133,50 @@
   border-color: var(--green-dark);
   color: var(--white);
 }
+
+.client-sort-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: 1.5rem;
+}
+
+.client-sort-label {
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.client-sort-select {
+  padding: .38rem .65rem;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: .88rem;
+  background: var(--white);
+  color: var(--gray-800);
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.client-sort-select:focus { border-color: var(--green-mid); outline: none; }
+
+.client-sort-dir {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 8px;
+  background: var(--white);
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color .15s, background .15s;
+}
+.client-sort-dir:hover { border-color: var(--green-mid); background: var(--gray-50); }
 
 /* State messages */
 .state-msg {
