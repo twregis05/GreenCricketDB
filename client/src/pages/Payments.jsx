@@ -12,7 +12,7 @@ const ALL_EXPORT_COLS = [
   'Invoice #', 'Client', 'Status', 'Amount Due', 'Amount Paid', 'Balance', 'Credit',
   'Billing Month', 'Date Sent', 'Payment Type', 'Property',
   'Zelle Date', 'Zelle Notes', 'Check Date', 'Check #', 'Check Memo',
-  'Date Processed', 'Payment Memo', 'Notes',
+  'Date Processed', 'Payment Memo', 'Cash Date', 'Cash Notes', 'Notes',
   'Payment Processing', 'Job Completed',
 ];
 
@@ -27,6 +27,8 @@ const BLANK_INVOICE = {
   zelleDate: '',
   zelleNotes: '',
   checkDate: '',
+  cashDate: '',
+  cashNotes: '',
   checkNumber: '',
   checkMemo: '',
   processedDate: '',
@@ -137,6 +139,8 @@ export default function Payments() {
       zelleDate:    toDateStr(inv.zelleDate ?? inv.zelleDateTime),
       zelleNotes:   inv.zelleNotes || '',
       checkDate:    toDateStr(inv.checkDate),
+      cashDate:     toDateStr(inv.cashDate),
+      cashNotes:    inv.cashNotes || '',
       checkNumber:  inv.checkNumber || '',
       checkMemo:    inv.checkMemo || '',
       processedDate: toDateStr(inv.processedDate),
@@ -391,6 +395,8 @@ export default function Payments() {
         'Check Memo':     inv.checkMemo    || '',
         'Date Processed':     fmtD(inv.processedDate),
         'Payment Memo':       inv.paymentMemo  || '',
+        'Cash Date':          fmtD(inv.cashDate),
+        'Cash Notes':         inv.cashNotes    || '',
         'Notes':              inv.notes        || '',
         'Payment Processing': inv.paymentProcessing ? 'Yes' : 'No',
         'Job Completed':      inv.jobCompleted      ? 'Yes' : 'No',
@@ -492,6 +498,7 @@ export default function Payments() {
                     <option value="zelle">Zelle</option>
                     <option value="check">Check</option>
                     <option value="credit">Credit / Online</option>
+                    <option value="cash">Cash</option>
                   </select>
                 </div>
                 <div className="adv-filter-group">
@@ -914,6 +921,7 @@ export default function Payments() {
                     <option value="zelle">Zelle</option>
                     <option value="check">Check</option>
                     <option value="credit">Credit / Online</option>
+                    <option value="cash">Cash</option>
                   </select>
                 </div>
 
@@ -956,6 +964,19 @@ export default function Payments() {
                     <div className="form-group">
                       <label>Payment Memo</label>
                       <input value={form.paymentMemo} onChange={set('paymentMemo')} placeholder="Memo…" />
+                    </div>
+                  </>
+                )}
+
+                {form.paymentType === 'cash' && (
+                  <>
+                    <div className="form-group">
+                      <label>Date Received</label>
+                      <input type="date" value={form.cashDate} onChange={set('cashDate')} />
+                    </div>
+                    <div className="form-group">
+                      <label>Cash Notes</label>
+                      <input value={form.cashNotes} onChange={set('cashNotes')} placeholder="e.g. received in envelope…" />
                     </div>
                   </>
                 )}
@@ -1239,6 +1260,13 @@ function PaymentDetail({ inv }) {
     return (
       <span className="payment-pill pill-check">
         Check #{inv.checkNumber}{inv.checkDate ? ` · ${fmtDate(inv.checkDate)}` : ''}{inv.checkMemo ? ` · "${inv.checkMemo}"` : ''}
+      </span>
+    );
+  }
+  if (inv.paymentType === 'cash') {
+    return (
+      <span className="payment-pill pill-cash">
+        Cash{inv.cashDate ? ` · ${fmtDate(inv.cashDate)}` : ''}{inv.cashNotes ? ` · "${inv.cashNotes}"` : ''}
       </span>
     );
   }

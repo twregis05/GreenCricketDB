@@ -11,7 +11,7 @@ const invoiceSchema = new mongoose.Schema(
     dateReceived: { type: Date },
     paymentType: {
       type: String,
-      enum: ['zelle', 'check', 'credit', 'online', null],
+      enum: ['zelle', 'check', 'credit', 'online', 'cash', null],
       default: null,
     },
     // Zelle
@@ -25,6 +25,9 @@ const invoiceSchema = new mongoose.Schema(
     // Credit / Online
     processedDate: { type: Date },
     paymentMemo: { type: String },
+    // Cash
+    cashDate:  { type: Date },
+    cashNotes: { type: String },
     // General
     invoiceMonth: { type: String, default: '' },
     notes: { type: String, default: '' },
