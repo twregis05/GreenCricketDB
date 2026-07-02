@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
+import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
 
 export default function Login() {
@@ -9,6 +10,7 @@ export default function Login() {
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
   const navigate = useNavigate();
+  const { refreshAuth } = useAuth();
 
   const submit = async () => {
     setLoading(true);
@@ -16,6 +18,7 @@ export default function Login() {
     try {
       const { data } = await api.post('/auth/login', { email, password });
       localStorage.setItem('gc_token', data.token);
+      await refreshAuth();
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');

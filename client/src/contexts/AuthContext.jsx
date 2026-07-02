@@ -1,12 +1,12 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
 
-const AuthContext = createContext({ canEdit: true });
+const AuthContext = createContext({ canEdit: true, refreshAuth: () => {} });
 
 export function AuthProvider({ children }) {
   const [canEdit, setCanEdit] = useState(true);
 
-  useEffect(() => {
+  const refreshAuth = useCallback(() => {
     const token = localStorage.getItem('gc_token');
     if (!token) { setCanEdit(false); return; }
     api.get('/auth/me')
@@ -19,7 +19,9 @@ export function AuthProvider({ children }) {
       });
   }, []);
 
-  return <AuthContext.Provider value={{ canEdit }}>{children}</AuthContext.Provider>;
+  useEffect(() => { refreshAuth(); }, [refreshAuth]);
+
+  return <AuthContext.Provider value={{ canEdit, refreshAuth }}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => useContext(AuthContext);
