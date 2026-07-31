@@ -33,6 +33,7 @@ const invoiceSchema = new mongoose.Schema(
     notes: { type: String, default: '' },
     paymentProcessing: { type: Boolean, default: false },
     jobCompleted:      { type: Boolean, default: false },
+    jobCompletedDate:  { type: Date, default: null },
   },
   { timestamps: true }
 );

@@ -36,7 +36,10 @@ export default function Dashboard() {
         const contactMatch = (c.contacts || []).some(
           (ct) => (ct.name || '').toLowerCase().includes(q) || (ct.email || '').toLowerCase().includes(q) || (ct.phone || '').includes(q)
         );
-        return name.includes(q) || (c.email || '').toLowerCase().includes(q) || (c.phone || '').includes(q) || contactMatch;
+        const addressMatch = (c.properties || []).some(
+          (p) => (p.address || '').toLowerCase().includes(q) || (p.label || '').toLowerCase().includes(q)
+        );
+        return name.includes(q) || (c.email || '').toLowerCase().includes(q) || (c.phone || '').includes(q) || contactMatch || addressMatch;
       });
     }
     const clientDisplayName = (c) => c.clientType === 'group'
@@ -141,7 +144,7 @@ export default function Dashboard() {
           <input
             className="search-input"
             type="text"
-            placeholder="Search by name, email, or phone…"
+            placeholder="Search by name, email, phone, or address…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

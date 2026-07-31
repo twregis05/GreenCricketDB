@@ -297,7 +297,8 @@
 .cal-btn.danger:hover { background: var(--danger-light); }
 
 /* Modal wide */
-.modal-wide { width: 95vw; max-width: 95vw; }
+.modal-wide { width: 95vw !important; max-width: 95vw !important; }
+.modal-wide .form-grid { grid-template-columns: 1fr 1fr 1fr; }
 
 /* Apply Credit */
 .btn-apply-credit {

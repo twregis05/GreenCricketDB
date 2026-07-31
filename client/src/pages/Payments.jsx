@@ -13,7 +13,7 @@ const ALL_EXPORT_COLS = [
   'Billing Month', 'Date Sent', 'Payment Type', 'Property',
   'Zelle Date', 'Zelle Notes', 'Check Date', 'Check #', 'Check Memo',
   'Date Processed', 'Payment Memo', 'Cash Date', 'Cash Notes', 'Notes',
-  'Payment Processing', 'Job Completed',
+  'Payment Processing', 'Job Completed', 'Job Completed Date',
 ];
 
 const BLANK_INVOICE = {
@@ -37,6 +37,7 @@ const BLANK_INVOICE = {
   notes: '',
   paymentProcessing: false,
   jobCompleted: false,
+  jobCompletedDate: '',
 };
 
 export default function Payments() {
@@ -149,6 +150,7 @@ export default function Payments() {
       notes:             inv.notes || '',
       paymentProcessing: inv.paymentProcessing || false,
       jobCompleted:      inv.jobCompleted || false,
+      jobCompletedDate:  toDateStr(inv.jobCompletedDate),
     });
     setEditId(inv._id);
     setError('');
@@ -398,8 +400,9 @@ export default function Payments() {
         'Cash Date':          fmtD(inv.cashDate),
         'Cash Notes':         inv.cashNotes    || '',
         'Notes':              inv.notes        || '',
-        'Payment Processing': inv.paymentProcessing ? 'Yes' : 'No',
-        'Job Completed':      inv.jobCompleted      ? 'Yes' : 'No',
+        'Payment Processing':  inv.paymentProcessing ? 'Yes' : 'No',
+        'Job Completed':       inv.jobCompleted      ? 'Yes' : 'No',
+        'Job Completed Date':  fmtD(inv.jobCompletedDate),
       };
     });
 
@@ -656,6 +659,7 @@ export default function Payments() {
                           <div className="inv-dates">
                             {inv.invoiceMonth && <span>{fmtMonth(inv.invoiceMonth)}</span>}
                             <span>Sent: {fmtDate(inv.dateSent)}</span>
+                            {inv.jobCompleted && inv.jobCompletedDate && <span>Completed: {fmtDate(inv.jobCompletedDate)}</span>}
                           </div>
                           {inv.paymentType && (
                             <div className="inv-payment-detail">
@@ -821,6 +825,7 @@ export default function Payments() {
                       <div className="inv-dates">
                         {inv.invoiceMonth && <span>{fmtMonth(inv.invoiceMonth)}</span>}
                         <span>Sent: {fmtDate(inv.dateSent)}</span>
+                        {inv.jobCompleted && inv.jobCompletedDate && <span>Completed: {fmtDate(inv.jobCompletedDate)}</span>}
                       </div>
                       {inv.paymentType && (
                         <div className="inv-payment-detail">
@@ -992,10 +997,18 @@ export default function Payments() {
                     <input
                       type="checkbox"
                       checked={!!form.jobCompleted}
-                      onChange={(e) => setForm((f) => ({ ...f, jobCompleted: e.target.checked }))}
+                      onChange={(e) => setForm((f) => ({ ...f, jobCompleted: e.target.checked, jobCompletedDate: e.target.checked ? f.jobCompletedDate : '' }))}
                     />
                     <span>Mark as completed</span>
                   </label>
+                  {form.jobCompleted && (
+                    <input
+                      type="date"
+                      style={{ marginTop: '.5rem' }}
+                      value={form.jobCompletedDate}
+                      onChange={(e) => setForm((f) => ({ ...f, jobCompletedDate: e.target.value }))}
+                    />
+                  )}
                 </div>
                 <div className="form-group">
                   <label>Payment Processing</label>
