@@ -265,6 +265,19 @@ export default function Payments() {
     return props.find((p) => p._id?.toString() === inv.propertyId?.toString()) || null;
   };
 
+  const invStatus = (inv) => {
+    const due  = inv.amountDue  || 0;
+    const paid = inv.amountPaid || 0;
+    if (paid > due)  return 'overpaid';
+    if (paid >= due) return 'paid';
+    if (inv.paymentProcessing) return 'processing';
+    if (inv.dateSent) {
+      const daysSince = (Date.now() - new Date(inv.dateSent).getTime()) / 86400000;
+      if (daysSince > 3) return 'overdue';
+    }
+    return 'pending';
+  };
+
   const filteredInvoices = (() => {
     const base = propertyFilter === 'all'
       ? [...invoices]
@@ -303,19 +316,6 @@ export default function Payments() {
   const fmtMonth = (m) => m
     ? new Date(m + '-02').toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
     : null;
-
-  const invStatus = (inv) => {
-    const due  = inv.amountDue  || 0;
-    const paid = inv.amountPaid || 0;
-    if (paid > due)  return 'overpaid';
-    if (paid >= due) return 'paid';
-    if (inv.paymentProcessing) return 'processing';
-    if (inv.dateSent) {
-      const daysSince = (Date.now() - new Date(inv.dateSent).getTime()) / 86400000;
-      if (daysSince > 3) return 'overdue';
-    }
-    return 'pending';
-  };
 
   const advFiltered = allInvoices.filter((inv) => {
     if (advQ) {
@@ -1002,12 +1002,14 @@ export default function Payments() {
                     <span>Mark as completed</span>
                   </label>
                   {form.jobCompleted && (
-                    <input
-                      type="date"
-                      style={{ marginTop: '.5rem' }}
-                      value={form.jobCompletedDate}
-                      onChange={(e) => setForm((f) => ({ ...f, jobCompletedDate: e.target.value }))}
-                    />
+                    <div style={{ marginTop: '.5rem' }}>
+                      <label className="inv-subfield-label">Date completed</label>
+                      <input
+                        type="date"
+                        value={form.jobCompletedDate}
+                        onChange={(e) => setForm((f) => ({ ...f, jobCompletedDate: e.target.value }))}
+                      />
+                    </div>
                   )}
                 </div>
                 <div className="form-group">

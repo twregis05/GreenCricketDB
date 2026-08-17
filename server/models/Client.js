@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
 const contactSchema = new mongoose.Schema({
-  name:  { type: String, trim: true },
-  phone: { type: String, trim: true },
-  email: { type: String, trim: true, lowercase: true },
+  name:      { type: String, trim: true },
+  phone:     { type: String, trim: true },
+  email:     { type: String, trim: true, lowercase: true },
+  isPrimary: { type: Boolean, default: false },
 }, { _id: true });
 
 const propertySchema = new mongoose.Schema({

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
+import { primaryContact } from '../utils/client';
 import './ClientModal.css';
 
 const EMPTY = {
@@ -57,7 +58,10 @@ export default function ClientModal({ client, allClients = [], onClose, onSaved,
 
   // ── Contacts ──────────────────────────────────────────
   const addContact = () =>
-    setForm((f) => ({ ...f, contacts: [...f.contacts, { name: '', phone: '', email: '' }] }));
+    setForm((f) => ({
+      ...f,
+      contacts: [...f.contacts, { name: '', phone: '', email: '', isPrimary: f.contacts.length === 0 }],
+    }));
 
   const removeContact = (i) =>
     setForm((f) => ({ ...f, contacts: f.contacts.filter((_, idx) => idx !== i) }));
@@ -68,6 +72,12 @@ export default function ClientModal({ client, allClients = [], onClose, onSaved,
       contacts[i] = { ...contacts[i], [field]: e.target.value };
       return { ...f, contacts };
     });
+
+  const setPrimaryContact = (i) =>
+    setForm((f) => ({
+      ...f,
+      contacts: f.contacts.map((c, idx) => ({ ...c, isPrimary: idx === i })),
+    }));
 
   // ── Properties ────────────────────────────────────────
   const addProperty = () =>
@@ -174,7 +184,7 @@ export default function ClientModal({ client, allClients = [], onClose, onSaved,
                 const mName = m.clientType === 'individual'
                   ? `${m.firstName || ''} ${m.lastName || ''}`.trim()
                   : m.groupName;
-                const mEmail = m.email || (m.contacts?.[0]?.email) || '';
+                const mEmail = m.email || primaryContact(m)?.email || '';
                 return (
                   <li key={m._id} className="dup-match-item">
                     <strong>{mName}</strong>
@@ -231,24 +241,33 @@ export default function ClientModal({ client, allClients = [], onClose, onSaved,
             {client.clientType === 'individual' ? (
               <div className="info-grid">
                 <Field label="Phone" value={client.phone} />
-                <Field label="Email" value={client.email} />
+                <Field label="Primary Email" value={client.email} />
               </div>
             ) : (
-              <Section title="Contacts">
-                {(!client.contacts || client.contacts.length === 0) ? (
-                  <p className="section-empty">No contacts on record.</p>
-                ) : (
-                  <div className="contact-list">
-                    {client.contacts.map((c, i) => (
-                      <div key={i} className="contact-row-view">
-                        <span className="contact-name">{c.name || '—'}</span>
-                        {c.phone && <span className="contact-detail">{c.phone}</span>}
-                        {c.email && <span className="contact-detail">{c.email}</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Section>
+              <>
+                <div className="info-grid">
+                  <Field label="Primary Email" value={client.email} />
+                </div>
+                <Section title="Contacts">
+                  {(!client.contacts || client.contacts.length === 0) ? (
+                    <p className="section-empty">No contacts on record.</p>
+                  ) : (
+                    <div className="contact-list">
+                      {client.contacts.map((c, i) => {
+                        const isPrimary = c === primaryContact(client);
+                        return (
+                          <div key={i} className="contact-row-view">
+                            <span className="contact-name">{c.name || '—'}</span>
+                            {isPrimary && <span className="primary-contact-badge">Primary</span>}
+                            {c.phone && <span className="contact-detail">{c.phone}</span>}
+                            {c.email && <span className="contact-detail">{c.email}</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </Section>
+              </>
             )}
 
             <Section title="Properties">
@@ -356,7 +375,7 @@ export default function ClientModal({ client, allClients = [], onClose, onSaved,
                   <input value={form.phone} onChange={set('phone')} placeholder="(555) 000-0000" />
                 </div>
                 <div className="form-group">
-                  <label>Email</label>
+                  <label>Primary Email</label>
                   <input type="email" value={form.email} onChange={set('email')} placeholder="jane@example.com" />
                 </div>
               </div>
@@ -370,6 +389,10 @@ export default function ClientModal({ client, allClients = [], onClose, onSaved,
                     <label>Group Name *</label>
                     <input value={form.groupName} onChange={set('groupName')} placeholder="Smith Family / Acme Corp" />
                   </div>
+                  <div className="form-group form-span">
+                    <label>Primary Email</label>
+                    <input type="email" value={form.email} onChange={set('email')} placeholder="billing@example.com" />
+                  </div>
                 </div>
 
                 <div className="array-section">
@@ -382,6 +405,15 @@ export default function ClientModal({ client, allClients = [], onClose, onSaved,
                   )}
                   {form.contacts.map((c, i) => (
                     <div key={i} className="array-row">
+                      <label className="primary-contact-radio" title="Mark as primary contact">
+                        <input
+                          type="radio"
+                          name="primaryContact"
+                          checked={!!c.isPrimary}
+                          onChange={() => setPrimaryContact(i)}
+                        />
+                        <span>Primary</span>
+                      </label>
                       <div className="array-row-fields">
                         <input
                           placeholder="Name"
